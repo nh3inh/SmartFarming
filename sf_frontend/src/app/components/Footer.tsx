@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { FacebookIcon, LinkedinIcon, InstagramIcon } from "lucide-react";
+import { FacebookIcon, LinkedinIcon, InstagramIcon, MailIcon } from "lucide-react";
 
 interface FooterProps {
     className?: string;
@@ -36,10 +36,7 @@ export default function Footer({ className }: FooterProps) {
                             <FacebookIcon size={16} />
                         </a>
                         <a href="#" className="p-2 bg-gray-100 rounded-full hover:bg-green-600 hover:text-white">
-                            <LinkedinIcon size={16} />
-                        </a>
-                        <a href="#" className="p-2 bg-gray-100 rounded-full hover:bg-green-600 hover:text-white">
-                            <InstagramIcon size={16} />
+                            <MailIcon size={16} />
                         </a>
                     </div>
                 </div>
@@ -59,8 +56,8 @@ export default function Footer({ className }: FooterProps) {
                         <div>
                             <h4 className="font-semibold mb-2">Thời gian làm việc</h4>
                             <ul className="space-y-1">
-                                <li>Thứ 2 - Thứ 6: 9.00am - 5.00pm</li>
-                                <li>Thứ 7 - Chủ nhật: D</li>
+                                <li>Thứ 2 - Thứ 6: 9:00 - 17.00</li>
+                                <li>Thứ 7 - Chủ nhật: Nghỉ</li>
                             </ul>
                         </div>
                     </div>

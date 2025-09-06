@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Phone } from "lucide-react";
+import { Phone, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface NavbarProps {
     className?: string;
@@ -11,6 +12,7 @@ interface NavbarProps {
 
 export default function Navbar({ className }: NavbarProps) {
     const pathname = usePathname();
+    const [isOpen, setIsOpen] = useState(false);
 
     const navItems = [
         { href: "/home", label: "Trang chủ" },
@@ -35,12 +37,13 @@ export default function Navbar({ className }: NavbarProps) {
                             height={60}
                             className="rounded"
                         />
-                        <span>Canh tác thông minh</span>
+                        {/* Ẩn chữ khi tablet & mobile */}
+                        <span className="hidden lg:inline">Canh tác thông minh</span>
                     </Link>
                 </div>
 
-                {/* Menu */}
-                <ul className="hidden md:flex space-x-6 font-bold">
+                {/* Menu desktop */}
+                <ul className="hidden lg:flex space-x-6 font-bold">
                     {navItems.map((item) => {
                         const isActive =
                             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -62,9 +65,9 @@ export default function Navbar({ className }: NavbarProps) {
                     })}
                 </ul>
 
-                {/* Phone + Button */}
-                <div className="flex items-center space-x-6">
-                    <div className="hidden md:flex items-center space-x-2">
+                {/* Phone + Button desktop */}
+                <div className="hidden lg:flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
                         <Phone size={18} />
                         <span>+84 3952 2540</span>
                     </div>
@@ -72,6 +75,49 @@ export default function Navbar({ className }: NavbarProps) {
                         Liên hệ →
                     </button>
                 </div>
+
+                {/* Hamburger menu (tablet + mobile) */}
+                <div className="lg:hidden">
+                    <button
+                        onClick={() => setIsOpen(!isOpen)}
+                        className="p-2 rounded focus:outline-none hover:text-[#5b8c51] cursor-pointer"
+                    >
+                        {isOpen ? <X size={28} /> : <Menu size={28} />}
+                    </button>
+                </div>
+
+                {/* Mobile + Tablet menu */}
+                {isOpen && (
+                        <div className="absolute top-[80px] left-0 w-full bg-[#f8f7f0] shadow-md border-t border-gray-300 lg:hidden">
+
+                        <ul className="flex flex-col p-6 font-bold">
+                            {navItems.map((item) => {
+                                const isActive =
+                                    pathname === item.href || pathname.startsWith(item.href + "/");
+
+                                return (
+                                    <li key={item.href}>
+                                        <Link
+                                            href={item.href}
+                                            onClick={() => setIsOpen(false)}
+                                            className="block px-3 py-3"
+                                        >
+                                            <span
+                                                className={`inline-block w-[20%] transition-colors duration-200 border-b-4
+                                        ${isActive
+                                                        ? "text-yellow-600 border-yellow-500"
+                                                        : "text-gray-800 border-transparent hover:text-[#5b8c51] hover:border-[#5b8c51]"}`}
+                                            >
+                                                {item.label}
+                                            </span>
+                                        </Link>
+                                    </li>
+
+                                );
+                            })}
+                        </ul>
+                    </div>
+                )}
             </nav>
         </div>
     );
