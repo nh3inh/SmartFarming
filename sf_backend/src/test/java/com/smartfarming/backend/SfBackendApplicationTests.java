@@ -1,4 +1,4 @@
-package sf_backend;
+package com.smartfarming.backend;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

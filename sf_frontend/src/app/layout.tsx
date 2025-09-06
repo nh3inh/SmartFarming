@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Canh tác thông minh",
   description: "Smart Farming - Canh tác thông minh",
+  icons: {
+    icon: "/logo.png"
+  }
 };
 
 export default function RootLayout({
@@ -23,7 +26,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="overflow-y-scroll">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

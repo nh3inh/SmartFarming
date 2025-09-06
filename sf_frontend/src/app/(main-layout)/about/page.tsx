@@ -1,5 +1,12 @@
-export default function AboutPage(){
+"use client";
+
+import Navbar from "@/app/components/Navbar";
+
+export default function AboutPage() {
     return (
-        <h1>About page</h1>
+        <div className="">
+            <Navbar />
+            <h1>About page</h1>
+        </div>
     )
 }

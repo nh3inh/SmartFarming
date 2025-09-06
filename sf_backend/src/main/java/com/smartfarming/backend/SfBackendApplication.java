@@ -1,4 +1,4 @@
-package sf_backend;
+package com.smartfarming.backend;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

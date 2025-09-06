@@ -2,11 +2,11 @@
 
 import Navbar from "@/app/components/Navbar";
 
-export default function ContactPage(){
+export default function ProductPage(){
     return (
         <div className="">
             <Navbar />
-            <h1>Contact page</h1>
+            <h1>Product page</h1>
         </div>
     )
 }

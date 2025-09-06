@@ -78,7 +78,7 @@ export default function LoginPage() {
 
             <button
               type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200"
+              className="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 cursor-pointer transition-colors duration-200"
             >
               Đăng nhập
             </button>
