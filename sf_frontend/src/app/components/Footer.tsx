@@ -11,10 +11,10 @@ interface FooterProps {
 export default function Footer({ className }: FooterProps) {
     return (
         <footer className="bg-white">
-            {/* Thanh màu vàng phía trên để trống */}
+            {/* Thanh màu vàng phía trên */}
             <div className="h-14 bg-yellow-400"></div>
 
-            <div className="px-6 md:px-20 py-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="px-6 md:px-20 py-12 grid grid-cols-1 md:grid-cols-3 gap-8  bg-[#f8f7f0]">
                 {/* Logo + giới thiệu */}
                 <div>
                     <div className="flex items-center text-2xl font-bold text-[#5b8c51]">

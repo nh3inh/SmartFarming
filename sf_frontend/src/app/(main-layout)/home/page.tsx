@@ -28,7 +28,7 @@ export default function HomePage() {
                             Hãy tin vào chất lượng!
                         </motion.button>
 
-                        <h1 className="text-5xl font-extrabold leading-tight mb-4">
+                        <h1 className="text-5xl font-semibold leading-tight mb-4">
                             Niềm tin vào chất lượng: <br />
                             Trực tiếp từ nông trại
                         </h1>
