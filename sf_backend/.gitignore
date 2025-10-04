@@ -19,4 +19,4 @@ staticfiles/
 .DS_Store
 
 # Env file
-.env
+.env*
