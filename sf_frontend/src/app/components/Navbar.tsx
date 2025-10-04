@@ -4,7 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { Phone, Menu, X } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import UserDropdown from "@/components/UserDropdown"
+import { getUserProfile, UserData } from "@/services/userService";
+import React, { useEffect, useState } from "react";
+
 
 interface NavbarProps {
     className?: string;
@@ -13,7 +16,7 @@ interface NavbarProps {
 export default function Navbar({ className }: NavbarProps) {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
-
+    const [user, setUser] = useState<UserData | null>(null);
     const navItems = [
         { href: "/home", label: "Trang chủ" },
         { href: "/products", label: "Sản phẩm" },
@@ -21,6 +24,21 @@ export default function Navbar({ className }: NavbarProps) {
         { href: "/about", label: "Về chúng tôi" },
         { href: "/contact", label: "Liên hệ" },
     ];
+    useEffect(() => {
+        const fetchUser = async () => {
+            const userData = await getUserProfile();
+            if (userData) setUser(userData);
+        };
+        fetchUser();
+    }, []);
+
+    const userAvatar = user
+        ? user.last_name
+            .split(" ")
+            .map(word => word[0])
+            .join("")
+            .toUpperCase()
+        : "";
 
     return (
         <div
@@ -37,7 +55,6 @@ export default function Navbar({ className }: NavbarProps) {
                             height={60}
                             className="rounded"
                         />
-                        {/* Ẩn chữ khi tablet & mobile */}
                         <span className="hidden lg:inline">Canh tác thông minh</span>
                     </Link>
                 </div>
@@ -53,7 +70,7 @@ export default function Navbar({ className }: NavbarProps) {
                                 <Link
                                     href={item.href}
                                     className={`px-3 py-1 rounded-full transition-colors duration-200
-                                ${isActive
+                                        ${isActive
                                             ? "text-yellow-400"
                                             : "hover:text-[#5b8c51]"
                                         }`}
@@ -65,8 +82,8 @@ export default function Navbar({ className }: NavbarProps) {
                     })}
                 </ul>
 
-                {/* Phone + Button desktop */}
-                <div className="hidden lg:flex items-center space-x-6">
+                {/* Phone + Button desktop + User dropdown */}
+                <div className="hidden lg:flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                         <Phone size={18} />
                         <span>+84 3952 2540</span>
@@ -74,9 +91,12 @@ export default function Navbar({ className }: NavbarProps) {
                     <button className="bg-yellow-300 text-green-800 font-semibold px-5 py-2 rounded-full shadow hover:bg-yellow-400 cursor-pointer">
                         Liên hệ →
                     </button>
+
+                    {/* User avatar dropdown */}
+                    <UserDropdown avatar={userAvatar} />
                 </div>
 
-                {/* Hamburger menu (tablet + mobile) */}
+                {/* Hamburger menu */}
                 <div className="lg:hidden">
                     <button
                         onClick={() => setIsOpen(!isOpen)}
@@ -88,8 +108,7 @@ export default function Navbar({ className }: NavbarProps) {
 
                 {/* Mobile + Tablet menu */}
                 {isOpen && (
-                        <div className="absolute top-[80px] left-0 w-full bg-[#f8f7f0] shadow-md border-t border-gray-300 lg:hidden">
-
+                    <div className="absolute top-[80px] left-0 w-full bg-[#f8f7f0] shadow-md border-t border-gray-300 lg:hidden">
                         <ul className="flex flex-col p-6 font-bold">
                             {navItems.map((item) => {
                                 const isActive =
@@ -104,7 +123,7 @@ export default function Navbar({ className }: NavbarProps) {
                                         >
                                             <span
                                                 className={`inline-block w-[20%] transition-colors duration-200 border-b-4
-                                        ${isActive
+                                                ${isActive
                                                         ? "text-yellow-600 border-yellow-500"
                                                         : "text-gray-800 border-transparent hover:text-[#5b8c51] hover:border-[#5b8c51]"}`}
                                             >
@@ -112,7 +131,6 @@ export default function Navbar({ className }: NavbarProps) {
                                             </span>
                                         </Link>
                                     </li>
-
                                 );
                             })}
                         </ul>

@@ -1,4 +1,5 @@
 "use client";
+
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "@/app/components/Navbar";
