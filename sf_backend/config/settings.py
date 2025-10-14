@@ -111,8 +111,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'gis',
+        'USER': 'sf_user1',
+        'PASSWORD': '123456',
+        'HOST': '54.255.155.254',
+        'PORT': '5432',
     }
 }
 
