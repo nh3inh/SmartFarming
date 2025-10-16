@@ -112,10 +112,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'gis',
-        'USER': 'sf_user1',
-        'PASSWORD': '123456',
-        'HOST': '54.255.155.254',
+        'NAME': 'SmartFarming_gis_db',
+        'USER': 'postgres',
+        'PASSWORD': '#MK220603u',
+        'HOST': 'smartfarming-database.czyg2c4gejf7.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
     }
 }
