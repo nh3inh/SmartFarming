@@ -1,4 +1,6 @@
-from utils.mongo import mongo 
+from utils.mongo import MongoDB
+mongo = MongoDB()
+
 from utils.jwt_utils import (
     create_access_token,
     create_refresh_token,
@@ -192,7 +194,11 @@ class AuthServices(SessionUser):
              return {"success": False, "message": f"error: {str(e)}"}
 
     def create_cookie(self, access_token, refresh_token):
+        if isinstance(access_token, bytes):
+            access_token = access_token.decode("utf-8")
+        if isinstance(refresh_token, bytes):
+            refresh_token = refresh_token.decode("utf-8")
         response = HttpResponse("Login successful")
-        response.set_cookie("access_token", access_token, httponly=True, max_age=3600)
-        response.set_cookie("refresh_token", refresh_token, httponly=True, max_age=3600*24*30)
+        response.set_cookie("access_token", access_token, httponly=True, max_age=3600, secure=False, samesite='Lax', path='/')
+        response.set_cookie("refresh_token", refresh_token, httponly=True, max_age=3600*24*30, secure=False, samesite='Lax', path='/')
         return response

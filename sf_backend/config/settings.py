@@ -32,6 +32,7 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 GOOGLE_CLIENT_ID =os.getenv('GOOGLE_CLIENT_ID')
 GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
 REDIRECT_URI = os.getenv('REDIRECT_URI')
+EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -71,6 +72,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'fields',
 ]
 
 MIDDLEWARE = [

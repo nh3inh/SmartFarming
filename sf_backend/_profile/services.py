@@ -1,4 +1,6 @@
-from utils.mongo import mongo
+from utils.mongo import MongoDB
+mongo = MongoDB()
+
 from bson.objectid import ObjectId
 from utils.jwt_utils import create_verify_token
 from utils.email_utils import send_verify_email

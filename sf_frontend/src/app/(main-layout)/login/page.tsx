@@ -8,7 +8,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_BE_API_BASE_URL}/auth/google_oauth_start/`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}auth/google_oauth_start/`;
   };
 
   return (

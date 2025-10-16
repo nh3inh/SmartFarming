@@ -7,14 +7,25 @@ MONGO_DB_USER = getattr(settings, 'MONGO_DB_USER', 'smart_farming_user')
 
 class MongoDB:
     def __init__(self):
-        print(f"Connecting to MongoDB at {MONGO_URI} with database {MONGO_DB_USER}")
-        self.client = MongoClient(MONGO_URI)
-        self.db = self.client.get_database(MONGO_DB_USER)
+        self.client = None
+        self.db = None
+
+    def connect(self):
+        if not self.client:
+            print(f"Connecting to MongoDB at {MONGO_URI} with database {MONGO_DB_USER}")
+            self.client = MongoClient(MONGO_URI)
+            self.db = self.client.get_database(MONGO_DB_USER)
+        return self.db
 
     def get_collection(self, collection_name):
-        return self.db[collection_name]
-   
-    def close_connection(self):
-        self.client.close()
+        db = self.connect()
+        return db[collection_name]
 
-mongo = MongoDB()
+    def close_connection(self):
+        if self.client:
+            self.client.close()
+            self.client = None
+            self.db = None
+
+
+# mongo = MongoDB()

@@ -1,11 +1,12 @@
-#create user_data function to test user.services.py
+from utils.mongo import MongoDB
+mongo = MongoDB()
+
 from _profile.services import UserService
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password, check_password
 from _auth.services import AuthServices
-from utils.mongo import mongo 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -60,9 +61,11 @@ class UserProfileView(APIView):
     """
     def get(self, request):
         token = request.COOKIES.get("access_token")
+        print("token from views 3: ", token)
         if not token:
             return JsonResponse({"success": False, "message": "Missing token"}, status=400)
         payload = decode_token(token)
+        print("payload: ", payload)
         if "error" in payload:
             return JsonResponse({"success": False, "message": payload["error"]}, status=401)
         

@@ -82,6 +82,12 @@ def create_cookie(access_token,refresh_token):
     samesite_value = 'Lax'  
     domain_value = 'localhost'
     response = HttpResponse()
+    
+    if isinstance(access_token, bytes):
+        access_token = access_token.decode("utf-8")
+    if isinstance(refresh_token, bytes):
+        refresh_token = refresh_token.decode("utf-8")
+    
     response.set_cookie(
         key='refresh_token',
         value=refresh_token,
