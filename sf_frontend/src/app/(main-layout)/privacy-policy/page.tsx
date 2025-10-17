@@ -1,7 +1,7 @@
 "use client";
 
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
+import Navbar from "@/app/components/layouts/Navbar";
+import Footer from "@/app/components/layouts/Footer";
 
 export default function PrivacyPolicyPage() {
     return (
@@ -72,7 +72,7 @@ export default function PrivacyPolicyPage() {
                         Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào liên quan đến Chính sách bảo mật, vui lòng liên hệ với chúng tôi qua email:{" "}
                         <a href="mailto:privacy@smartfarming.vn" className="text-green-600 hover:underline">
                             privacy@smartfarming.vn
-                        </a>.
+                        </a>
                     </p>
                 </section>
             </main>

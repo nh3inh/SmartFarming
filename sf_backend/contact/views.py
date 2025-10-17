@@ -23,7 +23,6 @@ def contact_view(request):
         👤 Name: {name}
         📞 Phone: {phone}
         📧 Email: {email}
-
         📝 Message:
         {content}
         """
@@ -39,8 +38,7 @@ def contact_view(request):
             return JsonResponse({"status": "success", "message": "Email sent!"})
         except Exception as e:
             import traceback
-            print("=== EMAIL ERROR ===")
-            traceback.print_exc()   # ✅ In lỗi chi tiết ra terminal
+            traceback.print_exc()
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
 
     return JsonResponse({"error": "Invalid request"}, status=400)

@@ -72,7 +72,7 @@ export default function Footer({ className }: FooterProps) {
             </div>
 
             {/* Phần cuối */}
-            <div className="border-t text-sm text-gray-600 flex flex-col md:flex-row justify-between items-center px-6 md:px-20 py-4">
+            <div className="bg-[#f8f7f0] border-t text-sm text-gray-600 flex flex-col md:flex-row justify-between items-center px-6 md:px-20 py-4">
                 <div className="flex space-x-4 mb-2 md:mb-0">
                     <a href="/terms-and-conditions" className="hover:text-green-600">Điều khoản & Điều kiện</a>
                     <a href="/privacy-policy" className="hover:text-green-600">Chính sách bảo mật</a>

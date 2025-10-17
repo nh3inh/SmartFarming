@@ -2,7 +2,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 
 def send_verify_email(email, token):
-    print(settings.EMAIL_HOST_USER)
     link = f"http://localhost:3000/pages/auth/signin?token={token}"
     subject = "Verify your email"
     message = f"Click the following link to verify your email:\n\n{link}"

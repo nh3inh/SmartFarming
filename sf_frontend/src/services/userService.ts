@@ -1,6 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 
 export interface UserData {
+    id: number; 
     success: boolean;
     first_name: string;
     last_name: string;

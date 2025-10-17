@@ -19,12 +19,17 @@ from django.contrib import admin
 from django.urls import path, include
 from _auth import urls as auth_urls
 from _profile import urls as profile_urls
-# from homepage import urls as homepage_urls
+from contact import urls as contact_urls
+from blog import urls as blog_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include(auth_urls.urlpatterns)),
     path("api/profile/", include(profile_urls.urlpatterns)),
     path("api/cornfields/", include("fields.urls")),
-    path("api/", include("homepage.urls")),
+
+    path("api/contact/", include(contact_urls.urlpatterns)),
+    path('api/blog/', include('blog.urls')),
+
+
 ]

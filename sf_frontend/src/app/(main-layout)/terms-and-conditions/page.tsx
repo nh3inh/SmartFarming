@@ -1,7 +1,7 @@
 "use client";
 
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
+import Navbar from "@/app/components/layouts/Navbar";
+import Footer from "@/app/components/layouts/Footer";
 
 export default function TermsAndConditionsPage() {
     return (
@@ -67,7 +67,7 @@ export default function TermsAndConditionsPage() {
                         Nếu bạn có câu hỏi về Điều khoản & Điều kiện, vui lòng liên hệ với chúng tôi qua email:{" "}
                         <a href="mailto:support@smartfarming.vn" className="text-green-600 hover:underline">
                             support@smartfarming.vn
-                        </a>.
+                        </a>
                     </p>
                 </section>
             </main>

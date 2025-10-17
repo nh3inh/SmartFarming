@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { getUserProfile, UserData } from "@/services/userService";
-import Footer from "@/app/components/Footer";
-import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/layouts/Footer";
+import Navbar from "@/app/components/layouts/Navbar";
 
 const Profile: React.FC = () => {
     const [user, setUser] = useState<UserData | null>(null);

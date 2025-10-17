@@ -5,7 +5,6 @@ from google.auth.exceptions import GoogleAuthError
 
 def decode_token_gg(token: str):
     try:
-        print(settings.GOOGLE_CLIENT_ID)
         idinfo = id_token.verify_oauth2_token(
             token,
             requests.Request(),

@@ -23,7 +23,6 @@ service = AuthServices()
 class LogoutUser(APIView):
     def post(self,request):
         token = request.COOKIES.get("access_token")
-        print("token from views 2: ", token)
         if not token:
             return JsonResponse({'success': False, 'message': 'No access token provided'}, status=400)
         return service.logout_user(token)
@@ -81,7 +80,6 @@ class GoogleCallback(APIView):
 class GetUserIdView(APIView):
     def get(self, request):
         token = request.COOKIES.get("access_token")
-        print("token from views 1: ", token)
         if not token:
             return Response({"error": "Missing token"}, status=status.HTTP_400_BAD_REQUEST)
         try:

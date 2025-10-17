@@ -1,7 +1,7 @@
 "use client";
 
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
+import Navbar from "@/app/components/layouts/Navbar";
+import Footer from "@/app/components/layouts/Footer";
 import { useState } from "react";
 import Image from "next/image";
 
@@ -124,7 +124,7 @@ export default function ContactPage() {
                     Chúng tôi luôn sẵn sàng đồng hành cùng bạn trong hành trình phát triển nông nghiệp thông minh:
                 </p>
                 <ul className="list-disc pl-5 mb-6">
-                    <li>Email: ngholinh.2263@gmail.com – Gửi câu hỏi hoặc yêu cầu hợp tác bất kỳ lúc nào.</li>
+                    <li>Email: support@smartfarming.vn – Gửi câu hỏi hoặc yêu cầu hợp tác bất kỳ lúc nào.</li>
                     <li>Hotline: +84 3952 2540 – Hoạt động [24/7].</li>
                     <li>Website: www.smartfarming.net – Tìm hiểu thêm về các giải pháp Smart Farming</li>
                 </ul>

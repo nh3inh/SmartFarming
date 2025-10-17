@@ -26,3 +26,34 @@ body {
 .txt-green {
   @apply text-[#699236];
 }
+
+.my-popup {
+  background: #ffffff;
+  backdrop-filter: blur(6px);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.my-popup .leaflet-popup-content-wrapper,
+.my-popup .leaflet-popup-tip {
+  background: transparent;
+  box-shadow: none;
+}
+
+.my-popup .leaflet-popup-content {
+  color: #111;
+  font-weight: 500;
+}
+
+@keyframes bounce-smooth {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-bounce-smooth {
+  animation: bounce-smooth 0.5s ease-in-out infinite;
+}

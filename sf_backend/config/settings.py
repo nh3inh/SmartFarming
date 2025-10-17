@@ -73,7 +73,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.gis',
-    'fields',
+    'fields',       
+    'blog',
+    'rest_framework',
+    'django_extensions',
 ]
 
 MIDDLEWARE = [
@@ -120,7 +123,8 @@ DATABASES = {
         'PASSWORD': '#MK220603u',
         'HOST': 'smartfarming-database.czyg2c4gejf7.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
-    }
+    },
+
 }
 
 

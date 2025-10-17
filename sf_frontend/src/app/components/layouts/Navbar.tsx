@@ -23,6 +23,7 @@ export default function Navbar({ className }: NavbarProps) {
         { href: "/blog", label: "Bài viết" },
         { href: "/about", label: "Về chúng tôi" },
         { href: "/contact", label: "Liên hệ" },
+        { href: "/map", label: "Bản đồ" },
     ];
     useEffect(() => {
         const fetchUser = async () => {

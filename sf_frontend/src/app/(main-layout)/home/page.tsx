@@ -2,8 +2,8 @@
 
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import Navbar from "@/app/components/Navbar";
-import Footer from "@/app/components/Footer";
+import Navbar from "@/app/components/layouts/Navbar";
+import Footer from "@/app/components/layouts/Footer";
 
 export default function HomePage() {
     return (
