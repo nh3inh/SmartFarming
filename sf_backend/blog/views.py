@@ -26,6 +26,10 @@ class BlogViewSet(viewsets.ViewSet):
         blog = BlogService.get_blog(pk)
         if not blog:
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Tăng lượt xem
+        BlogService.increment_viewer(blog)
+
         serializer = BlogSerializer(blog)
         return Response(serializer.data)
 
@@ -50,11 +54,11 @@ class BlogViewSet(viewsets.ViewSet):
     def add_comment(self, request, pk=None):
         user = request.user
         text = request.data.get('text', '')
-        comment = BlogService.add_comment(pk, user, text)
+        comment, error = BlogService.add_comment(pk, user, text)
         if comment:
             serializer = CommentSerializer(comment)
             return Response({"status": "success", "comment": serializer.data})
-        return Response({"status": "failed"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "failed", "detail": error}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['post'])
     def add_like(self, request, pk=None):

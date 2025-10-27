@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 
 export interface UserData {
-    id: number; 
+    id: number;
     success: boolean;
     first_name: string;
     last_name: string;
@@ -21,5 +21,23 @@ export const getUserProfile = async (): Promise<UserData | null> => {
     } catch (err) {
         console.error("Error fetching profile:", err);
         return null;
+    }
+};
+
+export const logoutUser = async (): Promise<boolean> => {
+    try {
+        const res: AxiosResponse = await axios.post("http://localhost:8000/api/auth/logout/",
+            {},
+            { withCredentials: true }
+        );
+
+        if (res.status === 200 && res.data.success) {
+            return true;
+        }
+        console.warn("Logout failed:", res.data);
+        return false;
+    } catch (err) {
+        console.error("Error during logout:", err);
+        return false;
     }
 };

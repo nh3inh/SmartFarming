@@ -1,19 +1,36 @@
-# blog/serializers.py
 from rest_framework import serializers
 from .models import Blog, Comment, Like
-from django.contrib.auth.models import User
-
-class CommentSerializer(serializers.ModelSerializer):
-    user = serializers.CharField(source='user.username', read_only=True)
-
-    class Meta:
-        model = Comment
-        fields = ['user', 'text', 'created_at']
 
 class BlogSerializer(serializers.ModelSerializer):
-    comments = CommentSerializer(many=True, read_only=True)
-    total_likes = serializers.IntegerField(source='likes.count', read_only=True)
+    comment_count = serializers.SerializerMethodField()
+    like_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Blog
-        fields = '__all__'
+        fields = [
+            'id', 'title', 'topic', 'image_url', 'text', 'tags',
+            'viewer', 'created_at', 'updated_at',
+            'comment_count', 'like_count',
+        ]
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+
+    def get_like_count(self, obj):
+        return obj.likes.count()
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'user', 'text', 'created_at']
+
+
+class LikeSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField(read_only=True)
+
+    class Meta:
+        model = Like
+        fields = ['id', 'user', 'created_at']

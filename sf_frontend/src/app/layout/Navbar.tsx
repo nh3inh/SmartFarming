@@ -43,7 +43,7 @@ export default function Navbar({ className }: NavbarProps) {
 
     return (
         <div
-            className={`w-full h-[80px] bg-[#f8f7f0] flex items-center px-6 sticky top-0 z-50 ${className || ""}`}
+            className={`w-full h-[80px] bg-[#f8f7f0] flex items-center px-6 sticky top-0 z-2000 ${className || ""}`}
         >
             <nav className="flex items-center justify-between w-full text-[#404a3d]">
                 {/* Logo + Text */}
@@ -83,7 +83,8 @@ export default function Navbar({ className }: NavbarProps) {
                     })}
                 </ul>
 
-                {/* Phone + Button desktop + User dropdown */}
+
+                {/* Desktop: Phone + Button + UserDropdown */}
                 <div className="hidden lg:flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                         <Phone size={18} />
@@ -92,13 +93,12 @@ export default function Navbar({ className }: NavbarProps) {
                     <button className="bg-yellow-300 text-green-800 font-semibold px-5 py-2 rounded-full shadow hover:bg-yellow-400 cursor-pointer">
                         Liên hệ →
                     </button>
-
-                    {/* User avatar dropdown */}
                     <UserDropdown avatar={userAvatar} />
                 </div>
 
-                {/* Hamburger menu */}
-                <div className="lg:hidden">
+                {/* Hamburger menu + UserDropdown trên mobile/tablet */}
+                <div className="lg:hidden flex items-center space-x-4">
+                    <UserDropdown avatar={userAvatar} />
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         className="p-2 rounded focus:outline-none hover:text-[#5b8c51] cursor-pointer"
@@ -106,6 +106,7 @@ export default function Navbar({ className }: NavbarProps) {
                         {isOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
                 </div>
+
 
                 {/* Mobile + Tablet menu */}
                 {isOpen && (

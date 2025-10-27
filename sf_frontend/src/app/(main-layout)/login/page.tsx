@@ -2,14 +2,19 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff } from "lucide-react";
+
 
 export default function LoginPage() {
+  const router = useRouter();
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleGoogleLogin = () => {
     window.location.href = `${process.env.NEXT_PUBLIC_API_BASE_URL}auth/google_oauth_start/`;
   };
+
+  const handleAnonymous = () => {
+    router.push("/home");
+  }
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-gray-200 p-4">
@@ -38,6 +43,12 @@ export default function LoginPage() {
             className="w-full mt-6 md:mt-8 bg-yellow-600 text-white py-3 rounded-lg font-semibold hover:bg-yellow-700 cursor-pointer transition-colors duration-200 text-sm md:text-base"
           >
             Đăng nhập bằng Google
+          </button>
+          <button
+            onClick={handleAnonymous}
+            className="w-full mt-6 md:mt-8 bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 cursor-pointer transition-colors duration-200 text-sm md:text-base"
+          >
+            Tiếp tục với tư cách khách
           </button>
         </div>
       </div>

@@ -35,3 +35,40 @@ class Cornfield(models.Model):
     area_m2 = models.FloatField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+class CornfieldInfo(models.Model):
+    farmer = models.ForeignKey('Farmer', on_delete=models.CASCADE, related_name='infos')
+    cornfield = models.ForeignKey('Cornfield', on_delete=models.CASCADE, related_name='infos')
+
+    timestamp = models.DateTimeField()
+    disease_class = models.CharField(max_length=100)
+    confidence = models.FloatField()
+    ms = models.FloatField()
+    image_rel = models.CharField(max_length=255)
+
+    gps_fix = models.BooleanField(default=False)
+    gps_lat = models.FloatField(null=True, blank=True)
+    gps_lon = models.FloatField(null=True, blank=True)
+    gps_alt = models.FloatField(null=True, blank=True)
+    gps_time = models.DateTimeField(null=True, blank=True)
+    gps_source = models.CharField(max_length=50, blank=True, null=True)
+
+    env_ok = models.BooleanField(default=True)
+    env_time = models.DateTimeField(null=True, blank=True)
+    env_port = models.CharField(max_length=50, blank=True, null=True)
+    env_source = models.CharField(max_length=50, blank=True, null=True)
+    temp = models.FloatField(null=True, blank=True)
+    hum = models.FloatField(null=True, blank=True)
+    ph = models.FloatField(null=True, blank=True)
+    soil = models.FloatField(null=True, blank=True)
+    wind = models.FloatField(null=True, blank=True)
+    wind_avg = models.FloatField(null=True, blank=True)
+    lux = models.FloatField(null=True, blank=True)
+
+    status = models.IntegerField(default=0)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.disease_class} ({self.timestamp}) - Farmer {self.farmer.id} / Cornfield {self.cornfield.id}"

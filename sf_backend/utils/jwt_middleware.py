@@ -11,7 +11,6 @@ from jwt.exceptions import (
 class JWTAuthMiddleware:
     def __init__(self, get_response):
         self.get_response = get_response
-        #So sánh xem path có bắt đầu với prefix hay không, dùng cho nhóm URL có chung tiền tố ,tat ca role
         self.exclude_prefixes = [
                 '/api/auth/',
                 '/api/profile/users/',
