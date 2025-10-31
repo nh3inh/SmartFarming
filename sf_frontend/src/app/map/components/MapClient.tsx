@@ -81,6 +81,19 @@ export default function MapClient() {
         });
         mapRef.current = map;
 
+        // fetch('https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer?f=pjson')
+        //     .then(res => res.json())
+        //     .then(data => {
+        //         console.log('Thông tin lớp Esri World Imagery:', data);
+
+        //         if (data?.documentInfo?.Modified) {
+        //             const modifiedDate = new Date(data.documentInfo.Modified);
+        //             console.log('Ngày cập nhật gần nhất của dịch vụ Esri:', modifiedDate.toLocaleString('vi-VN'));
+        //         }
+        //     })
+        //     .catch(err => console.error('Không thể tải metadata Esri:', err));
+        // https://livingatlas.arcgis.com/wayback/#mapCenter=116.40978%2C39.51004%2C14&mode=explore&active=20512
+
         // lớp nền
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
@@ -374,9 +387,55 @@ export default function MapClient() {
                     });
 
                     if (value === 'all') {
-                        renderFieldsOnMap(allData, myFieldIds, myData?.data || [], true);
-                    } else if (value === 'mine') {
-                        // nếu user chưa đăng nhập, myFieldIds rỗng => không show gì (cũng có thể disable option UI)
+                        try {
+                            const allInfo = await fetchAllUserFieldsInfo();
+                            const list = Array.isArray(allInfo) ? allInfo : [];
+
+                            const normalized = list
+                                .map((f: any) => {
+                                    const geomData = f.cornfield?.geometry;
+
+                                    if (typeof geomData === "object") return null;
+
+                                    if (typeof geomData === "string") {
+                                        return {
+                                            ...f,
+                                            geometry: geomData,
+                                        };
+                                    }
+
+                                    return null;
+                                })
+                                .filter(Boolean);
+
+                            const geojson = {
+                                type: "FeatureCollection",
+                                features: normalized.map((f: any) => ({
+                                    id: f.cornfield?.id,
+                                    type: "Feature",
+                                    geometry: f.geometry,
+                                    properties: {
+                                        id: f.cornfield?.id,
+                                        name: f.cornfield?.properties?.name,
+                                        area_m2: f.cornfield?.properties?.area_m2,
+                                        farmer: f.farmer,
+                                        status: f.status,
+                                        ...f,
+                                    },
+                                })),
+                            };
+
+                            const allFieldIds = new Set(
+                                geojson.features.map((f: any) => f.properties.id)
+                            );
+
+                            renderFieldsOnMap(geojson, allFieldIds, list, true);
+                        } catch (error) {
+                            console.error("Lỗi tải tất cả ruộng:", error);
+                        }
+                    }
+
+                    else if (value === 'mine') {
                         renderFieldsOnMap(allData, myFieldIds, myData?.data || [], false);
                     } else if (value.startsWith('status')) {
                         const statusNum = parseInt(value.replace('status', ''), 10);
@@ -630,6 +689,25 @@ export default function MapClient() {
                             <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#facc15' }}>Thông tin ruộng</p>
                         </h2>
                         <div className="p-4 rounded-xl bg-white shadow-md space-y-4 animate-fadeIn">
+
+                            {(() => {
+                                const dateStr =
+                                    selectedField.info?.cornfield?.properties?.created_at ||
+                                    selectedField.feature?.properties?.created_at;
+                                const date = new Date(dateStr);
+
+                                if (isNaN(date.getTime())) {
+                                    return <span className="text-gray-700 italic">Chưa nhận được thông tin</span>;
+                                }
+
+                                return (
+                                    <>
+                                        <span className="text-gray-700 italic">*Dữ liệu được cập nhật lúc </span>
+                                        <span className="text-gray-700 italic">{date.toLocaleString('vi-VN')}</span>
+                                    </>
+                                );
+                            })()}
+
                             <div className="grid grid-cols-2 gap-2">
                                 <span className="font-semibold text-gray-700">Nông dân:</span>
                                 <span className="text-green-600">
@@ -658,17 +736,21 @@ export default function MapClient() {
                             </div>
 
                             {selectedField.info?.image_rel && (
-                                <div className="overflow-hidden rounded-lg shadow-sm">
-                                    <img
-                                        src={selectedField.info.image_rel}
-                                        alt="Ảnh ruộng"
-                                        className="w-full object-cover transition-transform duration-300 hover:scale-105"
-                                    />
+                                <div className="">
+                                    <div className="overflow-hidden rounded-lg shadow-sm">
+                                        <img
+                                            src={selectedField.info.image_rel}
+                                            alt="Ảnh ruộng"
+                                            className="w-full object-cover transition-transform duration-300 hover:scale-105"
+                                        />
+                                    </div>
+                                    <div className="text-center text-[12px] italic mt-2">
+                                        Hình ảnh ruộng
+                                    </div>
                                 </div>
+
                             )}
-                            <div style={{ fontSize: '12px', fontStyle: 'italic', textAlign: 'center' }}>
-                                *Hình ảnh được chụp gần nhât
-                            </div>
+
                         </div>
 
                         <ul className="pl-4 space-y-2">
@@ -706,16 +788,16 @@ export default function MapClient() {
                             style={{
                                 position: 'absolute',
                                 top: 90,
-                                left: '36%',
+                                left: '35.8%',
                                 transform: 'translateX(-50%)',
-                                background: '#16a34a',
-                                color: 'white',
+                                background: '#ffff',
+                                color: 'green',
                                 border: 'none',
                                 padding: '8px 14px',
                                 borderRadius: '8px',
                                 cursor: 'pointer',
                                 fontWeight: 600,
-                                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                                boxShadow: '0 2px 6px rgba(43, 238, 9, 0.3)',
                             }}
                         >
                             Đóng
