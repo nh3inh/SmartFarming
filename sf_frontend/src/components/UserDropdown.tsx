@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { logoutUser } from "@/services/userService";
 
 interface UserDropdownProps {
@@ -12,11 +12,25 @@ interface UserDropdownProps {
 
 export default function UserDropdown({ avatar }: UserDropdownProps) {
     const [open, setOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(!!avatar);
+    const [menuItems, setMenuItems] = useState<{ href: string; label: string }[]>([]);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const pathname = usePathname();
     const router = useRouter();
 
-    const isLoggedIn = !!avatar; // nếu có avatar => đăng nhập
+    // Cập nhật trạng thái login và menu khi avatar thay đổi
+    useEffect(() => {
+        const loggedIn = !!avatar && avatar !== "?";
+        setIsLoggedIn(loggedIn);
+
+        setMenuItems(
+            loggedIn
+                ? [
+                      { href: "/profile", label: "Hồ sơ cá nhân" },
+                      { href: "/profile/asset", label: "Ruộng lúa" },
+                  ]
+                : [{ href: "/login", label: "Đăng nhập" }]
+        );
+    }, [avatar]);
 
     const handleMouseEnter = () => {
         if (timeoutRef.current) {
@@ -32,16 +46,9 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
 
     const handleLogout = async () => {
         setOpen(false);
-        const success = await logoutUser();
-        router.push(success ? "/login" : "/login?error=logout_failed");
+        await logoutUser();
+        router.push("/login");
     };
-
-    const menuItems = isLoggedIn
-        ? [
-            { href: "/profile", label: "Hồ sơ cá nhân" },
-            { href: "/asset", label: "Tài sản" },
-        ]
-        : [{ href: "/login", label: "Đăng nhập" }];
 
     return (
         <div
@@ -49,7 +56,6 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Avatar + Arrow */}
             <button
                 onClick={() => setOpen(!open)}
                 className="flex items-center justify-center focus:outline-none"
@@ -63,7 +69,6 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
                 />
             </button>
 
-            {/* Dropdown menu */}
             {open && (
                 <ul className="absolute right-0 top-full mt-2 w-48 bg-white border-gray-200 rounded shadow-lg z-50 font-bold">
                     {menuItems.map((item) => (

@@ -1,69 +1,86 @@
-# blog/views.py
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAdminUser, IsAuthenticated, AllowAny
-from rest_framework.decorators import action
+from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
-from .serializers import BlogSerializer, CommentSerializer
+
+from .serializers import BlogSerializer
 from .services import BlogService
 
+
 class BlogViewSet(viewsets.ViewSet):
+    """
+    API ViewSet cho Blog.
+    - Ai cũng xem được danh sách & chi tiết blog
+    - Chỉ Admin mới được tạo / sửa / xóa
+    """
 
     def get_permissions(self):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            permission_classes = [IsAdminUser]
-        elif self.action in ['add_comment', 'add_like']:
-            permission_classes = [IsAuthenticated]
+            permission_classes = [IsAdminUser]   # chỉ admin được phép
         else:
-            permission_classes = [AllowAny]
+            permission_classes = [AllowAny]      # công khai
         return [perm() for perm in permission_classes]
 
     def list(self, request):
-        blogs = BlogService.list_blogs()
-        serializer = BlogSerializer(blogs, many=True)
-        return Response(serializer.data)
+        """
+        Lấy danh sách blog có phân trang.
+        Query Params: ?page=1&page_size=6
+        """
+        page = request.query_params.get('page', 1)
+        page_size = request.query_params.get('page_size', 6)
+
+        result = BlogService.list_blogs(page, page_size)
+
+        serializer = BlogSerializer(result["items"], many=True)
+
+        return Response({
+            "items": serializer.data,
+            "total": result["total"],
+            "page": result["page"],
+            "pages": result["pages"],
+            "has_next": result["has_next"],
+            "has_prev": result["has_prev"],
+        })
 
     def retrieve(self, request, pk=None):
+        """
+        Lấy chi tiết blog theo ID và tự động tăng lượt xem.
+        """
         blog = BlogService.get_blog(pk)
         if not blog:
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Tăng lượt xem
         BlogService.increment_viewer(blog)
-
         serializer = BlogSerializer(blog)
         return Response(serializer.data)
 
     def create(self, request):
+        """
+        Tạo blog mới.
+        Chỉ Admin được phép.
+        """
         blog = BlogService.create_blog(request.data)
         serializer = BlogSerializer(blog)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None):
+        """
+        Cập nhật blog theo ID.
+        Chỉ Admin được phép.
+        """
         blog = BlogService.update_blog(pk, request.data)
         if not blog:
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+
         serializer = BlogSerializer(blog)
         return Response(serializer.data)
 
     def destroy(self, request, pk=None):
-        if BlogService.delete_blog(pk):
-            return Response({"status": "deleted"})
-        return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
+        """
+        Xóa blog theo ID.
+        Chỉ Admin được phép.
+        """
+        deleted = BlogService.delete_blog(pk)
+        if not deleted:
+            return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    @action(detail=True, methods=['post'])
-    def add_comment(self, request, pk=None):
-        user = request.user
-        text = request.data.get('text', '')
-        comment, error = BlogService.add_comment(pk, user, text)
-        if comment:
-            serializer = CommentSerializer(comment)
-            return Response({"status": "success", "comment": serializer.data})
-        return Response({"status": "failed", "detail": error}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(detail=True, methods=['post'])
-    def add_like(self, request, pk=None):
-        user = request.user
-        total_likes = BlogService.add_like(pk, user)
-        if total_likes is not None:
-            return Response({"status": "success", "total_likes": total_likes})
-        return Response({"status": "failed"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"status": "deleted"}, status=status.HTTP_200_OK)

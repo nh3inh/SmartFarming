@@ -21,12 +21,16 @@ from _auth import urls as auth_urls
 from _profile import urls as profile_urls
 from contact import urls as contact_urls
 from blog import urls as blog_urls
+from observation import urls as observation_urls
+from ml_models import urls as ml_model_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/", include(auth_urls.urlpatterns)),
     path("api/profile/", include(profile_urls.urlpatterns)),
-    path("api/cornfields/", include("fields.urls")),
     path("api/contact/", include(contact_urls.urlpatterns)),
-    path('api/blog/', include('blog.urls')),
+    path("api/cornfields/", include("fields.urls")),
+    path("api/blog/", include('blog.urls')),
+    path("api/observation/", include("observation.urls")),
+    # path("api/ml_models/", include("ml_models.urls")),
 ]

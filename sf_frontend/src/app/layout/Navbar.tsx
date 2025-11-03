@@ -20,7 +20,7 @@ export default function Navbar({ className }: NavbarProps) {
     const navItems = [
         { href: "/home", label: "Trang chủ" },
         { href: "/products", label: "Sản phẩm" },
-        { href: "/blog", label: "Bài viết" },
+        { href: "/blog", label: "Khám phá" },
         { href: "/about", label: "Về chúng tôi" },
         { href: "/contact", label: "Liên hệ" },
         { href: "/map", label: "Bản đồ" },
@@ -34,12 +34,14 @@ export default function Navbar({ className }: NavbarProps) {
     }, []);
 
     const userAvatar = user
-        ? user.last_name
+        ? (
+            user.last_name || user.first_name || ""
+        )
             .split(" ")
             .map(word => word[0])
             .join("")
             .toUpperCase()
-        : "";
+        : "?";
 
     return (
         <div

@@ -41,11 +41,14 @@ EMAIL_RECEIVER = os.getenv("EMAIL_RECEIVER")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # AWS S3 configuration
-# AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
-# AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")
-# AWS_REGION_NAME = os.getenv("REGION_NAME", "us-east-1")
-# AWS_STORAGE_BUCKET_NAME = os.getenv("BUCKET_NAME", "ieltsrealtest")
-# AVATAR_FOLDER = "public/user/avatar"
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")
+AWS_REGION_NAME = os.getenv("REGION_NAME", "ap-southeast-1")
+AWS_STORAGE_BUCKET_NAME = os.getenv("BUCKET_NAME", "smartfarming-bucket")
+AWS_MODEL_PATH = os.getenv(
+    "AWS_MODEL_PATH",
+    "Private/Model/efficientnet_model.keras"
+) 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -75,6 +78,8 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'fields',       
     'blog',
+    'observation',
+    'ml_models',
     'rest_framework',
     'django_extensions',
 ]
@@ -118,10 +123,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': 'SmartFarming_gis_db',
+        'NAME': 'smartfarming_gis_db',
         'USER': 'postgres',
         'PASSWORD': '#MK220603u',
-        'HOST': 'smartfarming-database.czyg2c4gejf7.ap-southeast-1.rds.amazonaws.com',
+        'HOST': 'smartfarming-db.czyg2c4gejf7.ap-southeast-1.rds.amazonaws.com',
         'PORT': '5432',
     },
 

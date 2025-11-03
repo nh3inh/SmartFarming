@@ -122,7 +122,7 @@ export default function HomePage() {
                                 {
                                     icon: <Bot size={36} />,
                                     title: "AI phân tích bệnh",
-                                    desc: "Phát hiện sớm bệnh hại trên lá và khuyến nghị điều trị.",
+                                    desc: "Phát hiện sớm bệnh hại trên lá.",
                                 },
                                 {
                                     icon: <Sprout size={36} />,

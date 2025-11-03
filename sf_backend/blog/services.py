@@ -1,71 +1,56 @@
-# blog/services.py
-from .models import Blog, Comment, Like
+from django.core.paginator import Paginator
 from django.utils import timezone
-from django.db.models import Count
+from .models import Blog
 
 class BlogService:
 
-    # @staticmethod
-    # def list_blogs():
-    #     return Blog.objects.annotate(
-    #         comment_count=Count('comments'),
-    #         like_count=Count('likes')
-    #     ).order_by('-created_at')
-
-    # @staticmethod
-    # def get_blog(blog_id):
-    #     try:
-    #         return Blog.objects.get(id=blog_id)
-    #     except Blog.DoesNotExist:
-    #         return None
-
     @staticmethod
-    def list_blogs():
-        return (
-            Blog.objects
-            .annotate(
-                comment_count=Count('comments', distinct=True),
-                like_count=Count('likes', distinct=True)
-            )
-            .prefetch_related('comments', 'likes')
-            .order_by('-created_at')
-        )
+    def list_blogs(page=1, page_size=6):
+        """
+        Lấy danh sách blog có phân trang.
+        :param page: trang hiện tại (mặc định = 1)
+        :param page_size: số blog mỗi trang (mặc định = 6)
+        :return: dict chứa data & thông tin phân trang
+        """
+        blogs = Blog.objects.all().order_by('-created_at')
+        paginator = Paginator(blogs, page_size)
+
+        page_obj = paginator.get_page(page)
+
+        return {
+            "items": page_obj.object_list,   # danh sách blog của trang hiện tại
+            "total": paginator.count,        # tổng số blog
+            "page": page_obj.number,         # trang hiện tại
+            "pages": paginator.num_pages,    # tổng số trang
+            "has_next": page_obj.has_next(), # còn trang tiếp theo?
+            "has_prev": page_obj.has_previous() # có trang trước?
+        }
 
     @staticmethod
     def get_blog(blog_id):
-        try:
-            return (
-                Blog.objects
-                .annotate(
-                    comment_count=Count('comments', distinct=True),
-                    like_count=Count('likes', distinct=True)
-                )
-                .prefetch_related('comments', 'likes')
-                .get(pk=blog_id)
-            )
-        except Blog.DoesNotExist:
-            return None
+        return Blog.objects.filter(pk=blog_id).first()
 
     @staticmethod
     def create_blog(data):
-        blog = Blog.objects.create(
+        return Blog.objects.create(
             title=data.get('title'),
             topic=data.get('topic'),
             image_url=data.get('image_url', ''),
-            text=data.get('text'),
-            tags=data.get('tags', []),
-            viewer=data.get('viewer', 0),
+            content=data.get('content'),
+            viewer=data.get('viewer', 0)
         )
-        return blog
 
     @staticmethod
     def update_blog(blog_id, data):
         blog = BlogService.get_blog(blog_id)
         if not blog:
             return None
-        for field in ['title', 'topic', 'image_url', 'text', 'tags', 'viewer']:
+        
+        fields = ['title', 'topic', 'image_url', 'content', 'viewer']
+        for field in fields:
             if field in data:
                 setattr(blog, field, data[field])
+
         blog.updated_at = timezone.now()
         blog.save()
         return blog
@@ -73,38 +58,13 @@ class BlogService:
     @staticmethod
     def delete_blog(blog_id):
         blog = BlogService.get_blog(blog_id)
-        if blog:
-            blog.delete()
-            return True
-        return False
-
-    @staticmethod
-    def add_comment(blog_id, user, text):
-        blog = BlogService.get_blog(blog_id)
         if not blog:
-            return None, "Blog not found"
-        if not text.strip():
-            return None, "Empty comment"
-        comment = Comment.objects.create(blog=blog, user=user, text=text)
-        return comment, None
+            return False
+        blog.delete()
+        return True
 
     @staticmethod
-    def add_like(blog_id, user):
-        blog = BlogService.get_blog(blog_id)
-        if not blog:
-            return None
-
-        like = Like.objects.filter(blog=blog, user=user).first()
-        if like:
-            like.delete()  # Bỏ like
-            return blog.likes.count()
-        else:
-            Like.objects.create(blog=blog, user=user)
-            return blog.likes.count()
-    
-    @staticmethod
-    def increment_viewer(blog):
+    def increment_viewer(blog: Blog):
         blog.viewer += 1
         blog.save(update_fields=['viewer'])
         return blog
-

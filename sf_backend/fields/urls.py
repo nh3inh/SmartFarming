@@ -9,7 +9,7 @@ cornfield_detail = CornfieldViewSet.as_view({'get': 'retrieve', 'put': 'update',
 
 cornfieldinfo_list = CornfieldInfoViewSet.as_view({'get': 'list', 'post': 'create'})
 cornfieldinfo_detail = CornfieldInfoViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})
-cornfieldinfo_my_fields = CornfieldInfoViewSet.as_view({'get': 'my_fields'})  # custom action
+cornfieldinfo_my_fields = CornfieldInfoViewSet.as_view({'get': 'my_fields'})
 
 cornfield_list = CornfieldViewSet.as_view({
     'get': 'list',

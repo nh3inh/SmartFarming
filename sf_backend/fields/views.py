@@ -48,3 +48,5 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
             "count": len(serializer.data),
             "data": serializer.data
         })
+        
+        

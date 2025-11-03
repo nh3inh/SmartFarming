@@ -5,4 +5,6 @@ from .views import BlogViewSet
 router = DefaultRouter()
 router.register(r'list_blog', BlogViewSet, basename='blog')
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+]

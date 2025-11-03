@@ -371,7 +371,6 @@ export default function MapClient() {
                     try {
                         myData = await fetchMyFields();
                     } catch (err) {
-                        console.info('Không lấy được ruộng của user (không đăng nhập).', err);
                     }
 
                     const myFieldIds = new Set<number>(
