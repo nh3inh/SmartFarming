@@ -45,6 +45,7 @@ AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")
 AWS_REGION_NAME = os.getenv("REGION_NAME", "ap-southeast-1")
 AWS_STORAGE_BUCKET_NAME = os.getenv("BUCKET_NAME", "smartfarming-bucket")
+AWS_MODEL_PATH_PL = os.getenv("AWS_MODEL_PATH_PL", "Public/Cornfield_Images/")
 AWS_MODEL_PATH = os.getenv(
     "AWS_MODEL_PATH",
     "Private/Model/efficientnet_model.keras"
@@ -62,7 +63,7 @@ SECRET_KEY = 'django-insecure-eign(qedgs^errt$ny8yo^15so$==lg92&))3wm_h76bn63$#m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["47.130.123.80", "localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -176,4 +177,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://47.130.123.80:3000",
 ]

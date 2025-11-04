@@ -1,6 +1,9 @@
 from rest_framework import viewsets, status
 from rest_framework.permissions import IsAdminUser, AllowAny
 from rest_framework.response import Response
+from django.core.paginator import Paginator, EmptyPage
+from .models import Blog
+from .serializers import BlogSerializer
 
 from .serializers import BlogSerializer
 from .services import BlogService
@@ -22,23 +25,40 @@ class BlogViewSet(viewsets.ViewSet):
 
     def list(self, request):
         """
-        Lấy danh sách blog có phân trang.
-        Query Params: ?page=1&page_size=6
+        API phân trang Blog
+        Query Params:
+        - page: số trang (mặc định = 1)
+        - page_size: số item mỗi trang (mặc định = 6)
         """
-        page = request.query_params.get('page', 1)
-        page_size = request.query_params.get('page_size', 6)
 
-        result = BlogService.list_blogs(page, page_size)
+        try:
+            page = int(request.GET.get('page', 1))
+        except:
+            page = 1
 
-        serializer = BlogSerializer(result["items"], many=True)
+        try:
+            page_size = int(request.GET.get('page_size', 6))
+        except:
+            page_size = 6
+
+        blogs = Blog.objects.all().order_by('-created_at')
+        paginator = Paginator(blogs, page_size)
+
+        try:
+            page_obj = paginator.page(page)
+        except EmptyPage:
+            page = 1
+            page_obj = paginator.page(page)
+
+        serializer = BlogSerializer(page_obj.object_list, many=True)
 
         return Response({
             "items": serializer.data,
-            "total": result["total"],
-            "page": result["page"],
-            "pages": result["pages"],
-            "has_next": result["has_next"],
-            "has_prev": result["has_prev"],
+            "total": paginator.count,
+            "page": page,
+            "pages": paginator.num_pages,
+            "has_next": page_obj.has_next(),
+            "has_prev": page_obj.has_previous()
         })
 
     def retrieve(self, request, pk=None):

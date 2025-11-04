@@ -20,7 +20,7 @@ export default function Navbar({ className }: NavbarProps) {
     const navItems = [
         { href: "/home", label: "Trang chủ" },
         { href: "/products", label: "Sản phẩm" },
-        { href: "/blog", label: "Khám phá" },
+        { href: "/blog", label: "Tin tức" },
         { href: "/about", label: "Về chúng tôi" },
         { href: "/contact", label: "Liên hệ" },
         { href: "/map", label: "Bản đồ" },

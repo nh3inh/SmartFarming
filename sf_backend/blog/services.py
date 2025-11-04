@@ -6,25 +6,9 @@ class BlogService:
 
     @staticmethod
     def list_blogs(page=1, page_size=6):
-        """
-        Lấy danh sách blog có phân trang.
-        :param page: trang hiện tại (mặc định = 1)
-        :param page_size: số blog mỗi trang (mặc định = 6)
-        :return: dict chứa data & thông tin phân trang
-        """
-        blogs = Blog.objects.all().order_by('-created_at')
-        paginator = Paginator(blogs, page_size)
 
-        page_obj = paginator.get_page(page)
+        return Blog.objects.all()
 
-        return {
-            "items": page_obj.object_list,   # danh sách blog của trang hiện tại
-            "total": paginator.count,        # tổng số blog
-            "page": page_obj.number,         # trang hiện tại
-            "pages": paginator.num_pages,    # tổng số trang
-            "has_next": page_obj.has_next(), # còn trang tiếp theo?
-            "has_prev": page_obj.has_previous() # có trang trước?
-        }
 
     @staticmethod
     def get_blog(blog_id):

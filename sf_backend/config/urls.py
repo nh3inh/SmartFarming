@@ -32,5 +32,5 @@ urlpatterns = [
     path("api/cornfields/", include("fields.urls")),
     path("api/blog/", include('blog.urls')),
     path("api/observation/", include("observation.urls")),
-    # path("api/ml_models/", include("ml_models.urls")),
+    path("api/ml_models/", include("ml_models.urls")),
 ]

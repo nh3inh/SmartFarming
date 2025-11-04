@@ -9,6 +9,11 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import WKT from 'terraformer-wkt-parser';
+import { log } from 'console';
+interface SelectedField {
+    feature: any;
+    info: any;
+}
 
 export default function MapClient() {
     const [user, setUser] = useState<any>(null);
@@ -17,6 +22,79 @@ export default function MapClient() {
     const userMarkerRef = useRef<L.Marker | null>(null);
     const allFieldsLayerRef = useRef<L.FeatureGroup | null>(null);
     const [selectedField, setSelectedField] = useState<any>(null);
+    const [cornfields, setCornfields] = useState<any[]>([]);
+
+    const diseaseColorMap: Record<string, string> = {
+        healthy: "#33CC00",
+        blast: "#FF9900",
+        brown_spot: "#fb00ffff",
+        bacterial_leaf_blight: "#CC3366",
+    };
+
+    const DISEASE_MAP: Record<string, string> = {
+        bacterial_leaf_blight: "Cháy bìa lá",
+        blast: "Đạo ôn",
+        brown_spot: "Đốm nâu",
+        healthy: "Khỏe mạnh"
+    };
+
+    useEffect(() => {
+        const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/sse/subscribe/`);
+        eventSource.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                console.log("data from SSE:", data);
+
+                // 1. Update popup nếu đang mở ruộng đó
+                setSelectedField((prev: SelectedField | null) => {
+                    if (!prev || prev.feature.properties.id === data.cornfield_id) {
+                        return prev
+                            ? { ...prev, info: { ...prev.info, ...data } }
+                            : { feature: { properties: { id: data.cornfield_id } }, info: data };
+                    }
+                    return prev;
+                });
+
+                // 2. Merge payload vào state cornfields
+                setCornfields(prev => {
+                    const idx = prev.findIndex(f => f.cornfield?.id === data.cornfield_id);
+                    if (idx !== -1) {
+                        const newArr = [...prev];
+                        newArr[idx] = { ...newArr[idx], ...data };
+                        return newArr;
+                    } else {
+                        return [data, ...prev];
+                    }
+                });
+
+                // 3. Update màu ruộng trên map
+                const layer = allFieldsLayerRef.current?.getLayers().find(
+                    (l: any) => Number(l._cornfieldId) === Number(data.cornfield_id)
+                );
+                if (layer) {
+                    const color = diseaseColorMap[data.disease_class] || '#2611dd';
+                    (layer as L.Path).setStyle({ color, fillOpacity: 0.45 });
+                }
+
+            } catch (err) {
+                console.error("SSE parse error:", err);
+            }
+        };
+
+
+        eventSource.onerror = (err) => {
+            console.warn("SSE error", err);
+            eventSource.close();
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    }, []);
+
+    useEffect(() => {
+        console.log('useEffect chạy rồi 2');
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -159,6 +237,41 @@ export default function MapClient() {
             return await res.json();
         }
 
+        function getLatestFieldsPerPair(fields: any[]) {
+            const map = new Map<string, any>();
+
+            fields.forEach(f => {
+                const cornfieldId = f.cornfield?.id;
+                const farmerId = f.farmer?.id;
+                if (!cornfieldId || !farmerId) return;
+
+                const key = `${cornfieldId}-${farmerId}`;
+
+                const createdAt =
+                    f.created_at ||
+                    f.updated_at ||
+                    f.cornfield?.created_at ||
+                    f.cornfield?.updated_at ||
+                    f.cornfield?.properties?.created_at ||
+                    f.cornfield?.properties?.updated_at ||
+                    null;
+
+                if (!createdAt) return;
+
+                const newTime = new Date(createdAt).getTime();
+                if (isNaN(newTime)) return;
+
+                const existing = map.get(key);
+                const existingTime = existing?._timestamp || 0;
+
+                if (!existing || newTime > existingTime) {
+                    map.set(key, { ...f, _timestamp: newTime });
+                }
+            });
+
+            return Array.from(map.values());
+        }
+
         // Hàm hiển thị ruộng lên bản đồ
         function renderFieldsOnMap(
             allData: any,
@@ -166,22 +279,6 @@ export default function MapClient() {
             myFields: any[],
             showOthers = true
         ) {
-            const statusColorMap: Record<number, string> = {
-                1: "#33CC00",
-                2: "#FF9900",
-                3: "#FF6600",
-                4: "#CC33FF",
-                5: "#CC3366",
-            };
-
-            // Map ruộng theo id -> status
-            const fieldStatusMap = new Map<number, number>();
-            myFields.forEach((f: any) => {
-                if (f.cornfield?.id != null && f.status != null) {
-                    fieldStatusMap.set(f.cornfield.id, f.status);
-                }
-            });
-
             // Chuyển GeoJSON sang Leaflet
             const features = allData.features.map((f: any) => {
                 const geom = WKT.parse((f.geometry || "").replace(/^SRID=\d+;/, ""));
@@ -202,39 +299,36 @@ export default function MapClient() {
                 const shouldShow = myFieldIds.has(fieldId);
                 if (!shouldShow && !showOthers) return;
 
-                const status = fieldStatusMap.get(fieldId);
-                const color = status ? statusColorMap[status] : "#2611dd";
-                const fillOpacity = status ? 0.45 : 0.25;
+                const info = myFields.find((f: any) => f.cornfield?.id === fieldId);
+
+                const disease = info?.disease_class;
+
+                const color = disease ? diseaseColorMap[disease] : "#2611dd";
+
+                const fillOpacity = disease ? 0.45 : status ? 0.45 : 0.25;
 
                 const layer = L.geoJSON(feature, { style: { color, weight: 2, fillOpacity } });
 
-                const info = myFields.find((f: any) => f.cornfield?.id === fieldId);
                 const popupContent = createFieldPopupContent(feature, info);
 
                 layer.eachLayer((l: any) => {
-                    // Xử lý click để hiển thị bảng bên trái
+                    l._cornfieldId = feature.properties.id;
                     l.on('click', () => {
                         setSelectedField({ feature, info });
                     });
 
                     allFieldsLayerRef.current?.addLayer(l);
                 });
-
             });
+
 
         }
 
         function createFieldPopupContent(field: any, info: any) {
-            const statusColorMap: Record<number, string> = {
-                1: "#33CC00",
-                2: "#FF9900",
-                3: "#FF6600",
-                4: "#CC33FF",
-                5: "#CC3366",
-            };
-
             const status = info?.status;
-            const color = status ? statusColorMap[status] : "#2611dd";
+            const disease = info?.disease_class;
+            const color = diseaseColorMap[disease] || "#2611dd";
+            const fillOpacity = disease ? 0.45 : 0.25;
             const ownerName = info?.farmer
                 ? `${info.farmer.last_name ?? ''} ${info.farmer.first_name ?? ''}`.trim() || 'Không tên'
                 : field.properties?.name || 'Không tên';
@@ -247,7 +341,8 @@ export default function MapClient() {
         <div style="min-width:220px;font-size:13px;">
         <h3 style="margin:0 0 6px 0;">Ruộng của nông dân: ${ownerName}</h3>
         <p>Diện tích khoảng: ${area} m²</p>
-        ${status ? `<p style="color:${color};font-weight:600">Trạng thái: ${status}</p>` : ''}
+        ${disease ? `<p style="color:${color};font-weight:600">
+        Trạng thái bệnh: ${DISEASE_MAP[disease] ?? disease}</p>` : ''}
         ${info?.image_rel ? `<img src="${info.image_rel}" style="width:100%;margin:4px 0;border-radius:4px;" />` : ''}
         ${info ? `
         <ul style="padding-left:16px;margin:4px 0;">
@@ -268,13 +363,12 @@ export default function MapClient() {
             const div = L.DomUtil.create('div', 'info legend');
             div.innerHTML = `
         <h2 style="font-size:16px; font-weight:bold; line-height:1.5">Trạng thái ruộng</h2>
-        <div style="font-size:13px; line-height:1.5">
-            <i style="background:#33CC00;width:14px;height:14px;display:inline-block;margin-right:5px;border:1px solid #ffffffff;"></i> Khỏe mạnh<br/>
-            <i style="background:#FF9900;width:14px;height:14px;display:inline-block;margin-right:5px;border:1px solid #ffffffff;"></i> Bệnh nhẹ<br/>
-            <i style="background:#FF6600;width:14px;height:14px;display:inline-block;margin-right:5px;border:1px solid #ffffffff;"></i> Bệnh trung bình<br/>
-            <i style="background:#CC33FF;width:14px;height:14px;display:inline-block;margin-right:5px;border:1px solid #ffffffff;"></i> Bệnh nặng<br/>
-            <i style="background:#CC3366;width:14px;height:14px;display:inline-block;margin-right:5px;border:1px solid #ffffffff;"></i> Bệnh rất nặng
-        </div>
+            <div style="font-size:13px; line-height:1.5">
+                <i style="background:#33CC00;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Khỏe mạnh<br/>
+                <i style="background:#FF9900;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Đạo ôn<br/>
+                <i style="background:#fb00ffff;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Đốm nâu<br/>
+                <i style="background:#CC3366;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Cháy bìa lá
+            </div>
     `;
             div.style.background = '#ffffff';
             div.style.padding = '8px 10px';
@@ -316,11 +410,10 @@ export default function MapClient() {
             <option value="none">Không hiển thị ruộng</option>
             <option value="all">Hiển thị tất cả ruộng</option>
             <option value="mine">Ruộng của tôi</option>
-            <option value="status1">Ruộng khỏe mạnh</option>
-            <option value="status2">Bệnh nhẹ</option>
-            <option value="status3">Bệnh trung bình</option>
-            <option value="status4">Bệnh nặng</option>
-            <option value="status5">Bệnh rất nặng</option>
+            <option value="healthy">Khỏe mạnh</option>
+            <option value="blast">Đạo ôn</option>
+            <option value="brown_spot">Đốm nâu</option>
+            <option value="bacterial_leaf_blight">Cháy bìa lá</option>
         </select>
     `;
 
@@ -342,7 +435,8 @@ export default function MapClient() {
                         .map((f: any) => f.cornfield?.id as number)
                         .filter((id: number) => !!id)
                 );
-                renderFieldsOnMap(allData, myFieldIds, allInfo || []);
+                const latestInfo = getLatestFieldsPerPair(allInfo?.data || allInfo || []);
+                renderFieldsOnMap(allData, myFieldIds, latestInfo);
             } catch (err) {
                 console.error("Lỗi tải ruộng:", err);
             }
@@ -378,6 +472,7 @@ export default function MapClient() {
                     );
 
                     const allInfoData = Array.isArray(allInfo?.data) ? allInfo.data : (Array.isArray(allInfo) ? allInfo : (allInfo?.data ?? []));
+                    const latestAllInfoData = getLatestFieldsPerPair(allInfoData || []);
                     const statusMap = new Map<number, number>();
                     (allInfoData || []).forEach((f: any) => {
                         if (f.cornfield?.id != null && f.status != null) {
@@ -388,7 +483,7 @@ export default function MapClient() {
                     if (value === 'all') {
                         try {
                             const allInfo = await fetchAllUserFieldsInfo();
-                            const list = Array.isArray(allInfo) ? allInfo : [];
+                            const list = latestAllInfoData;
 
                             const normalized = list
                                 .map((f: any) => {
@@ -435,16 +530,15 @@ export default function MapClient() {
                     }
 
                     else if (value === 'mine') {
-                        renderFieldsOnMap(allData, myFieldIds, myData?.data || [], false);
-                    } else if (value.startsWith('status')) {
-                        const statusNum = parseInt(value.replace('status', ''), 10);
-
-                        const filteredFields = (allInfoData || []).filter(
-                            (f: any) => f.status === statusNum && f.cornfield?.id !== undefined
+                        const latestMine = getLatestFieldsPerPair(myData?.data || []);
+                        renderFieldsOnMap(allData, myFieldIds, latestMine, false);
+                    } else if (['healthy', 'blast', 'brown_spot', 'bacterial_leaf_blight'].includes(value)) {
+                        const filteredFields = (latestAllInfoData || []).filter(
+                            (f: any) => f.disease_class === value && f.cornfield?.id !== undefined
                         );
 
                         const filteredIds = new Set<number>(
-                            filteredFields.map((f: any) => f.cornfield!.id).filter((id: any) => id !== undefined)
+                            filteredFields.map((f: any) => f.cornfield!.id).filter(Boolean)
                         );
 
                         const filteredFeatures = (allData.features || []).filter((f: any) => {
@@ -455,6 +549,7 @@ export default function MapClient() {
                         const filteredGeoJSON = { ...allData, features: filteredFeatures };
                         renderFieldsOnMap(filteredGeoJSON, filteredIds, filteredFields, false);
                     }
+
                 } catch (err) {
                     console.error('Lỗi khi lọc ruộng:', err);
                 }
@@ -656,14 +751,6 @@ export default function MapClient() {
         };
     }, [user]);
 
-    const statusMap: Record<number, { label: string; color: string }> = {
-        1: { label: 'Khỏe mạnh', color: '#33CC00' },
-        2: { label: 'Bệnh nhẹ', color: '#FF9900' },
-        3: { label: 'Bệnh trung bình', color: '#FF6600' },
-        4: { label: 'Bệnh nặng', color: '#CC33FF' },
-        5: { label: 'Bệnh rất nặng', color: '#CC3366' },
-    };
-
     return (
         <div style={{ display: 'flex', height: '89vh', width: '100%' }}>
             <div
@@ -691,6 +778,8 @@ export default function MapClient() {
 
                             {(() => {
                                 const dateStr =
+                                    selectedField.info?.created_at ||
+                                    selectedField.info?.updated_at ||
                                     selectedField.info?.cornfield?.properties?.created_at ||
                                     selectedField.feature?.properties?.created_at;
                                 const date = new Date(dateStr);
@@ -725,12 +814,12 @@ export default function MapClient() {
                                 </span>
 
                                 <span className="font-semibold text-gray-700">Trạng thái:</span>
-                                <span className="font-medium text-green-600">
-                                    {selectedField.info?.status
-                                        ? <span style={{ color: statusMap[selectedField.info.status].color, fontWeight: 600 }}>
-                                            {statusMap[selectedField.info.status].label}
+                                <span className="font-semibold">
+                                    {selectedField.info?.disease_class ? (
+                                        <span style={{ color: diseaseColorMap[selectedField.info.disease_class] || '#333', fontWeight: 600 }}>
+                                            {DISEASE_MAP[selectedField.info.disease_class] || selectedField.info.disease_class}
                                         </span>
-                                        : 'Không có dữ liệu'}
+                                    ) : 'Không có dữ liệu'}
                                 </span>
                             </div>
 
@@ -753,18 +842,38 @@ export default function MapClient() {
                         </div>
 
                         <ul className="pl-4 space-y-2">
-                            {['temp', 'hum', 'ph', 'soil', 'wind', 'lux'].map((key, index) => {
+                            {['confidence', 'temp', 'hum', 'ph', 'soil', 'wind', 'wind_avg', 'lux'].map((key, index) => {
                                 const value = selectedField.info?.[key];
-                                if (!value) return null;
+                                if (value === null || value === undefined) return null;
 
                                 const labelMap: Record<string, string> = {
+                                    confidence: 'Độ tin cậy chuẩn đoán bệnh',
                                     temp: 'Nhiệt độ',
                                     hum: 'Độ ẩm',
                                     ph: 'pH',
                                     soil: 'Độ ẩm đất',
-                                    wind: 'Gió',
+                                    wind: 'Gió hiện tại',
+                                    wind_avg: 'Gió trung bình',
                                     lux: 'Ánh sáng',
                                 };
+
+                                const unitMap: Record<string, string> = {
+                                    confidence: '%',
+                                    temp: '°C',
+                                    hum: '%',
+                                    wind: ' m/s',
+                                    wind_avg: ' m/s',
+                                    lux: ' lux',
+                                };
+
+                                let color = '#333';
+                                if (key === 'confidence') {
+                                    const perc = Math.min(Math.max(value, 0), 1) * 100;
+                                    if (perc >= 75) color = '#33CC00';
+                                    else if (perc >= 50) color = '#FFCC00';
+                                    else if (perc >= 25) color = '#fb00ffff';
+                                    else color = '#CC3300';
+                                }
 
                                 return (
                                     <li
@@ -776,7 +885,9 @@ export default function MapClient() {
                                         }}
                                     >
                                         <span className="font-semibold">{labelMap[key]}:</span>{' '}
-                                        <span className="font-medium">{value}{key === 'temp' ? '°C' : key === 'hum' ? '%' : key === 'wind' ? ' m/s' : key === 'lux' ? ' lux' : ''}</span>
+                                        <span className="font-medium" style={{ color }}>
+                                            {key === 'confidence' ? (value * 100).toFixed(1) + '%' : value + (unitMap[key] ?? '')}
+                                        </span>
                                     </li>
                                 );
                             })}

@@ -70,3 +70,11 @@ class FarmerFieldRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIV
     def get_queryset(self):
         user_id = self.get_user_id_from_profile(self.request)
         return FarmerField.objects.filter(farmer_id=user_id)
+
+class PublicFarmerFieldListAPIView(generics.ListAPIView):
+    """
+    API public: Lấy thông tin tất cả ruộng lúa của tất cả nông dân
+    """
+    queryset = FarmerField.objects.all()
+    serializer_class = FarmerFieldSerializer
+    permission_classes = [permissions.AllowAny]

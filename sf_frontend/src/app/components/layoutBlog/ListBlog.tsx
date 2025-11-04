@@ -1,152 +1,133 @@
-// "use client";
+"use client";
 
-// import React, { useEffect, useState } from "react";
-// import Link from "next/link";
-// // import { getCardsByPage, Card } from "@/services/getCardService";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-// // Trang định dạng card và phân trang
-// export function formatCopies(num: number): string {
-//     if (num >= 1000) {
-//         return `${(num / 1000).toFixed(num % 1000 === 0 ? 0 : 1)}k`;
-//     }
-//     return num.toString();
-// }
+interface Blog {
+  id: number;
+  title: string;
+  topic: string;
+  image_url: string;
+  content: string;
+  viewer: number;
+  created_at: string;
+  updated_at: string;
+}
 
-// export default function DictationEnglish() {
-//     const [lessons, setLessons] = useState<Card[]>([]);
-//     const [loading, setLoading] = useState(true);
+interface BlogData {
+  items: Blog[];
+  total: number;
+  page: number;
+  pages: number;
+  has_next: boolean;
+  has_prev: boolean;
+}
 
-//     const [page, setPage] = useState(1);
-//     const [limit] = useState(12); // mỗi trang 9 item
-//     const [total, setTotal] = useState(0);
-//     const totalPages = Math.ceil(total / limit);
+export default function BlogPage() {
+  const searchParams = useSearchParams();
+  const rawPage = searchParams.get("page");
 
-//     useEffect(() => {
-//         const fetchData = async () => {
-//             try {
-//                 const result = await getCardsByPage(page, limit);
-//                 setLessons(result.data);
-//                 setTotal(result.total);
-//             } catch (error) {
-//                 console.error("❌ Lỗi khi load cards:", error);
-//             } finally {
-//                 setLoading(false);
-//             }
-//         };
+  // ✅ Ép page về 1 nếu không hợp lệ
+  const page = !rawPage || isNaN(Number(rawPage)) || Number(rawPage) < 1
+    ? 1
+    : Number(rawPage);
 
-//         fetchData();
-//     }, [page, limit]);
+  const [data, setData] = useState<BlogData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-//     // ===== Hàm tạo danh sách số trang rút gọn =====
-//     const getPageNumbers = () => {
-//         const pages: (number | string)[] = [];
+  useEffect(() => {
+    async function fetchBlogs() {
+      setLoading(true);
+      try {
+        // ✅ FE luôn gọi query param
+        const url = `http://localhost:8000/api/blog/list_blog/?page=${page}`;
 
-//         if (totalPages <= 7) {
-//             for (let i = 1; i <= totalPages; i++) pages.push(i);
-//         } else {
-//             if (page <= 4) {
-//                 pages.push(1, 2, 3, 4, 5, "...", totalPages);
-//             } else if (page >= totalPages - 3) {
-//                 pages.push(1, "...", totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-//             } else {
-//                 pages.push(1, "...", page - 1, page, page + 1, "...", totalPages);
-//             }
-//         }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Failed to fetch blogs");
 
-//         return pages;
-//     };
+        const result = await res.json();
+        setData(result);
+      } catch (err) {
+        console.error(err);
+      }
+      setLoading(false);
+    }
 
-//     if (loading) {
-//         return (
-//             <div className="flex justify-center items-center h-64 space-x-2">
-//                 <div className="w-4 h-4 bg-red-500 rounded-full animate-bounce"></div>
-//                 <div className="w-4 h-4 bg-red-500 rounded-full animate-bounce [animation-delay:-0.2s]"></div>
-//                 <div className="w-4 h-4 bg-red-500 rounded-full animate-bounce [animation-delay:-0.4s]"></div>
-//             </div>
-//         );
-//     }
+    fetchBlogs();
+  }, [page]);
 
-//     if (lessons.length === 0) {
-//         console.log("✅ Rendering lessons 1:", lessons);
-//         return <div className="text-center py-10">No data available.</div>;
-//     }
+  if (loading) return <p className="text-center py-10">Đang tải dữ liệu...</p>;
+  if (!data) return <p className="text-center py-10">Không có dữ liệu blog</p>;
 
-//     return (
-//         <div>
-//             {/* Danh sách card */}
-//             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 ">
-//                 {lessons.map((lesson) => (
-//                     <div
-//                         key={lesson.id}
-//                         className="bg-white rounded-md flex flex-col"
-//                     >
-//                         <div className="w-full h-[200px]  bg-gray-200 rounded-md mb-4 flex items-center justify-center overflow-hidden">
-//                             <img
-//                                 src={lesson.image_url}
-//                                 alt="video"
-//                                 className="w-full h-full object-cover" />
-//                         </div>
+  return (
+    <div className="max-w-6xl mx-auto py-10 px-4">
+      <h1 className="mb-12 text-[#5b8c51] text-center font-bold text-[28px]"> TIN TỨC & BÀI VIẾT</h1>
 
-//                         <p className="text-sm text-[#A11D33]">{lesson.type}</p>
-//                         <p className="text-lg font-semibold truncate w-full">
-//                             {lesson.title}
-//                         </p>
-//                         <p className="text-base text-[#000000B3] mb-4"> {formatCopies(lesson.copies)} copies</p>
+      {data.items && data.items.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {data.items.map((blog) => (
+            <Link
+              key={blog.id}
+              href={`/blog/${blog.id}`}
+              className="bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition"
+            >
+              <div className="relative w-full">
+                <img
+                  src={blog.image_url}
+                  alt={blog.title}
+                  className="w-full h-48 object-cover rounded-t-lg"
+                />
+              </div>
 
-//                         <Link
-//                             href={lesson.type == "Video"
-//                                 ? `/exercise-video/${lesson.id}`
-//                                 : `/exercise-audio/${lesson.id}`}   // ✅ Điều hướng theo type
-//                             className="w-[145px] h-[36px] flex items-center justify-center bg-[#DA1E21] text-white text-sm font-arial rounded-xl hover:bg-red-700 transition"
-//                         >
-//                             Transcription
-//                         </Link>
+              <div className="p-4">
+                <h3 className="text-lg font-semibold text-gray-800 line-clamp-2">
+                  {blog.title}
+                </h3>
 
-//                     </div>
-//                 ))}
-//             </div>
+                <p className="text-sm text-blue-600 font-medium mt-1">
+                  {blog.topic}
+                </p>
 
-//             {/* Phân trang rút gọn */}
-//             <div className="flex justify-center items-center mt-10 space-x-2">
-//                 {/* Nút Prev */}
-//                 <button
-//                     onClick={() => page > 1 && setPage(page - 1)}
-//                     disabled={page === 1}
-//                     className="px-3 py-1 text-2xl text-black hover:bg-gray-100 disabled:opacity-50"
-//                 >
-//                     &lt;
-//                 </button>
+                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                  <span>{new Date(blog.created_at).toLocaleDateString("vi-VN")}</span>
+                  <span>{new Date(blog.updated_at).toLocaleDateString("vi-VN")}</span>
+                  <span>{blog.viewer} lượt xem</span>
+                </div>
 
-//                 {getPageNumbers().map((p, i) =>
-//                     p === "..." ? (
-//                         <span key={i} className="px-3 py-1 text-gray-500">
-//                             ...
-//                         </span>
-//                     ) : (
-//                         <button
-//                             key={i}
-//                             onClick={() => setPage(Number(p))}
-//                             className={`px-3 py-1 rounded-md  ${page === p
-//                                 ? "bg-blue-600 text-white border-blue-600"
-//                                 : "border-gray-300 text-gray-700 hover:bg-gray-100"
-//                                 }`}
-//                         >
-//                             {p}
-//                         </button>
-//                     )
-//                 )}
+                <p className="text-gray-600 text-sm mt-3 line-clamp-3">
+                  {blog.content}
+                </p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-gray-500 mt-10">Không tải được bài viết.</p>
+      )}
 
-//                 {/* Nút Next */}
-//                 <button
-//                     onClick={() => page < totalPages && setPage(page + 1)}
-//                     disabled={page === totalPages}
-//                     className="px-3 py-1 text-2xl text-black hover:bg-gray-100 disabled:opacity-50"
-//                 >
-//                     &gt;
-//                 </button>
-//             </div>
+      {/* Pagination */}
+      <div className="flex justify-center gap-3 mt-10">
+        {data.has_prev && (
+          <Link
+            href={`/blog?page=${page - 1}`}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            ← Trước
+          </Link>
+        )}
 
-//         </div>
-//     );
+        <span className="px-4 py-2 border rounded bg-gray-200">{page}</span>
 
-// }
+        {data.has_next && (
+          <Link
+            href={`/blog?page=${page + 1}`}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
+            Sau →
+          </Link>
+        )}
+      </div>
+    </div>
+  );
+}
