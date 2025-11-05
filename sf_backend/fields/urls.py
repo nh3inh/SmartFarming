@@ -31,6 +31,7 @@ urlpatterns = [
     path('info/', CornfieldInfoViewSet.as_view({'get': 'list', 'post': 'create'}), name='cornfieldinfo-list'),
     path('info/<int:pk>/', CornfieldInfoViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='cornfieldinfo-detail'),
     path('info/my-fields/', CornfieldInfoViewSet.as_view({'get': 'my_fields'}), name='cornfieldinfo-my-fields'),
+    path('info/my-field/', CornfieldInfoViewSet.as_view({'get': 'latest_fields'}), name='cornfieldinfo-my-field'),
     
     # Firebase webhook
     path('firebase-webhook/', views_firebase.firebase_webhook, name='firebase_webhook'),

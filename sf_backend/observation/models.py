@@ -1,8 +1,16 @@
 from django.db import models
 from fields.models import Farmer
+from fields.models import Cornfield 
 
 class FarmerField(models.Model):
     farmer = models.ForeignKey(Farmer, on_delete=models.CASCADE, related_name='fields')
+    cornfield = models.ForeignKey(
+        Cornfield,
+        on_delete=models.CASCADE,
+        related_name='farmer_fields',
+        null=True,
+        blank=True
+    )
     name = models.CharField(max_length=100)
     soil_type = models.CharField(max_length=50)
     crop_type = models.CharField(max_length=50)

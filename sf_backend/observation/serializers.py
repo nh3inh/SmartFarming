@@ -7,6 +7,7 @@ class FarmerFieldSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "farmer",
+            "cornfield",
             "name",
             "soil_type",
             "crop_type",
@@ -15,4 +16,4 @@ class FarmerFieldSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at"
         ]
-        read_only_fields = ["id", "created_at", "updated_at", "farmer"]
+        read_only_fields = ["id", "created_at", "updated_at", "farmer", "cornfield"]

@@ -25,7 +25,7 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
         setMenuItems(
             loggedIn
                 ? [
-                      { href: "/profile", label: "Hồ sơ cá nhân" },
+                      { href: "/profile", label: "Hồ sơ nông dân" },
                       { href: "/profile/asset", label: "Ruộng lúa" },
                   ]
                 : [{ href: "/login", label: "Đăng nhập" }]

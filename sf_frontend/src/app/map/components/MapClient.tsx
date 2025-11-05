@@ -448,8 +448,7 @@ export default function MapClient() {
             if (!select) return;
 
             const mineOption = select.querySelector('option[value="mine"]') as HTMLOptionElement | null;
-            if (mineOption && !userRef.current) mineOption.disabled = true;
-
+            if (mineOption) mineOption.style.display = user ? 'block' : 'none';
             select.addEventListener('change', async (e: Event) => {
                 const value = (e.target as HTMLSelectElement).value;
                 allFieldsLayer.clearLayers();
@@ -678,6 +677,21 @@ export default function MapClient() {
             allFieldsLayerRef.current = null;
         };
     }, []);
+
+    useEffect(() => {
+        const select = document.getElementById('field-filter-select') as HTMLSelectElement | null;
+        if (!select) return;
+
+        const mineOption = select.querySelector('option[value="mine"]') as HTMLOptionElement | null;
+        if (!mineOption) return;
+
+        if (user) {
+            mineOption.style.display = 'block';
+        } else {
+            mineOption.style.display = 'none';
+            if (select.value === 'mine') select.value = 'none'; // tránh select "mine" khi chưa đăng nhập
+        }
+    }, [user]);
 
     function getCookie(name: string): string | null {
         const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
