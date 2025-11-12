@@ -9,7 +9,8 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import WKT from 'terraformer-wkt-parser';
-import { log } from 'console';
+import FieldMetrics from "./FieldMetrics";
+
 interface SelectedField {
     feature: any;
     info: any;
@@ -25,9 +26,48 @@ export default function MapClient() {
     const [cornfields, setCornfields] = useState<any[]>([]);
 
     const diseaseColorMap: Record<string, string> = {
+        healthy_10: "#E6FFE6",
+        healthy_20: "#CCFFCC",
+        healthy_30: "#B3FFB3",
+        healthy_40: "#99FF99",
+        healthy_50: "#80FF80",
+        healthy_60: "#66FF66",
+        healthy_70: "#4DFF4D",
+        healthy_80: "#33FF33",
+        healthy_90: "#1AFF1A",
         healthy: "#33CC00",
+
+        blast_10: "#FFE6CC",
+        blast_20: "#FFD9B3",
+        blast_30: "#FFCC99",
+        blast_40: "#FFBF80",
+        blast_50: "#FFB266",
+        blast_60: "#FFA54D",
+        blast_70: "#FF9933",
+        blast_80: "#FF8C1A",
+        blast_90: "#FF8000",
         blast: "#FF9900",
-        brown_spot: "#fb00ffff",
+
+        brown_spot_10: "#FFE6FF",
+        brown_spot_20: "#FFCCFF",
+        brown_spot_30: "#FFB3FF",
+        brown_spot_40: "#FF99FF",
+        brown_spot_50: "#FF80FF",
+        brown_spot_60: "#FF66FF",
+        brown_spot_70: "#FF33FF",
+        brown_spot_80: "#FF00FF",
+        brown_spot_90: "#FB00FF",
+        brown_spot: "#FB00FF",
+
+        bacterial_leaf_blight_10: "#FFE6F0",
+        bacterial_leaf_blight_20: "#FFCCE0",
+        bacterial_leaf_blight_30: "#FFB3D1",
+        bacterial_leaf_blight_40: "#FF99C1",
+        bacterial_leaf_blight_50: "#FF80B2",
+        bacterial_leaf_blight_60: "#FF66A3",
+        bacterial_leaf_blight_70: "#FF4D94",
+        bacterial_leaf_blight_80: "#FF3366",
+        bacterial_leaf_blight_90: "#CC3366",
         bacterial_leaf_blight: "#CC3366",
     };
 
@@ -362,14 +402,71 @@ export default function MapClient() {
         legend.onAdd = () => {
             const div = L.DomUtil.create('div', 'info legend');
             div.innerHTML = `
-        <h2 style="font-size:16px; font-weight:bold; line-height:1.5">Trạng thái ruộng</h2>
-            <div style="font-size:13px; line-height:1.5">
-                <i style="background:#33CC00;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Khỏe mạnh<br/>
-                <i style="background:#FF9900;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Đạo ôn<br/>
-                <i style="background:#fb00ffff;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Đốm nâu<br/>
-                <i style="background:#CC3366;width:14px;height:14px;display:inline-block;margin-right:5px;"></i> Cháy bìa lá
-            </div>
-    `;
+                <h2 style="font-size:16px; font-weight:bold; line-height:1.5">Trạng thái ruộng</h2>
+                <div style="font-size:13px; line-height:1.5; display:flex; flex-direction:column; gap:3px;">
+
+                <!-- Khỏe mạnh -->
+                <div style="display:flex;">
+                <i style="background:#E6FFE6;width:14px;height:14px;"></i>
+                <i style="background:#CCFFCC;width:14px;height:14px;"></i>
+                <i style="background:#B3FFB3;width:14px;height:14px;"></i>
+                <i style="background:#99FF99;width:14px;height:14px;"></i>
+                <i style="background:#80FF80;width:14px;height:14px;"></i>
+                <i style="background:#66FF66;width:14px;height:14px;"></i>
+                <i style="background:#4DFF4D;width:14px;height:14px;"></i>
+                <i style="background:#33FF33;width:14px;height:14px;"></i>
+                <i style="background:#1AFF1A;width:14px;height:14px;"></i>
+                <i style="background:#33CC00;width:14px;height:14px;"></i>
+                <span style="margin-left:5px;">Khỏe mạnh</span>
+                </div>
+
+                <!-- Đạo ôn -->
+                <div style="display:flex;">
+                <i style="background:#FFE6CC;width:14px;height:14px;"></i>
+                <i style="background:#FFD9B3;width:14px;height:14px;"></i>
+                <i style="background:#FFCC99;width:14px;height:14px;"></i>
+                <i style="background:#FFBF80;width:14px;height:14px;"></i>
+                <i style="background:#FFB266;width:14px;height:14px;"></i>
+                <i style="background:#FFA54D;width:14px;height:14px;"></i>
+                <i style="background:#FF9933;width:14px;height:14px;"></i>
+                <i style="background:#FF8C1A;width:14px;height:14px;"></i>
+                <i style="background:#FF8000;width:14px;height:14px;"></i>
+                <i style="background:#FF9900;width:14px;height:14px;"></i>
+                <span style="margin-left:5px;">Đạo ôn</span>
+                </div>
+
+                <!-- Đốm nâu -->
+                <div style="display:flex;">
+                <i style="background:#FFE6FF;width:14px;height:14px;"></i>
+                <i style="background:#FFCCFF;width:14px;height:14px;"></i>
+                <i style="background:#FFB3FF;width:14px;height:14px;"></i>
+                <i style="background:#FF99FF;width:14px;height:14px;"></i>
+                <i style="background:#FF80FF;width:14px;height:14px;"></i>
+                <i style="background:#FF66FF;width:14px;height:14px;"></i>
+                <i style="background:#FF33FF;width:14px;height:14px;"></i>
+                <i style="background:#FF00FF;width:14px;height:14px;"></i>
+                <i style="background:#FB00FF;width:14px;height:14px;"></i>
+                <i style="background:#FB00FF;width:14px;height:14px;"></i>
+                <span style="margin-left:5px;">Đốm nâu</span>
+                </div>
+
+                <!-- Cháy bìa lá -->
+                <div style="display:flex;">
+                <i style="background:#FFE6F0;width:14px;height:14px;"></i>
+                <i style="background:#FFCCE0;width:14px;height:14px;"></i>
+                <i style="background:#FFB3D1;width:14px;height:14px;"></i>
+                <i style="background:#FF99C1;width:14px;height:14px;"></i>
+                <i style="background:#FF80B2;width:14px;height:14px;"></i>
+                <i style="background:#FF66A3;width:14px;height:14px;"></i>
+                <i style="background:#FF4D94;width:14px;height:14px;"></i>
+                <i style="background:#FF3366;width:14px;height:14px;"></i>
+                <i style="background:#CC3366;width:14px;height:14px;"></i>
+                <i style="background:#CC3366;width:14px;height:14px;"></i>
+                <span style="margin-left:5px;">Cháy bìa lá</span>
+                </div>
+                </div>
+                `;
+
             div.style.background = '#ffffff';
             div.style.padding = '8px 10px';
             div.style.borderRadius = '8px';
@@ -771,55 +868,45 @@ export default function MapClient() {
                 style={{
                     width: selectedField ? '40%' : '0',
                     transition: 'width 0.3s ease',
-                    overflowY: selectedField ? 'auto' : 'hidden',
+                    overflowY: 'auto',
                     background: '#fff',
                     borderRight: '1px solid #ccc',
                     padding: selectedField ? '16px' : '0',
+                    position: 'relative',
                 }}
             >
-
                 {selectedField ? (
-                    <div style={{ fontSize: 14 }}>
-                        <h2 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <img
-                                src="/rice.png"
-                                alt="Rice"
-                                style={{ width: 32, height: 32 }}
-                            />
-                            <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#facc15' }}>Thông tin ruộng</p>
+                    <div className="font-sans text-[14px] space-y-5 animate-fadeIn">
+                        <h2 className="flex items-center gap-2 text-2xl font-bold text-yellow-400">
+                            <img src="/rice.png" alt="Rice" className="w-8 h-8" />
+                            Thông tin ruộng
                         </h2>
-                        <div className="p-4 rounded-xl bg-white shadow-md space-y-4 animate-fadeIn">
 
-                            {(() => {
-                                const dateStr =
-                                    selectedField.info?.created_at ||
-                                    selectedField.info?.updated_at ||
-                                    selectedField.info?.cornfield?.properties?.created_at ||
-                                    selectedField.feature?.properties?.created_at;
-                                const date = new Date(dateStr);
+                        <div className="flex gap-4 bg-white shadow-md rounded-xl p-4 items-start">
+                            {selectedField.info?.image_rel ? (
+                                <div className="flex-shrink-0 w-[120px] h-[120px] overflow-hidden rounded-lg shadow-sm">
+                                    <img
+                                        src={selectedField.info.image_rel}
+                                        alt="Ảnh ruộng"
+                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="w-[120px] h-[120px] flex items-center justify-center text-gray-400 italic">
+                                    Không có ảnh
+                                </div>
+                            )}
 
-                                if (isNaN(date.getTime())) {
-                                    return <span className="text-gray-700 italic">Chưa nhận được thông tin</span>;
-                                }
-
-                                return (
-                                    <>
-                                        <span className="text-gray-700 italic">*Dữ liệu được cập nhật lúc </span>
-                                        <span className="text-gray-700 italic">{date.toLocaleString('vi-VN')}</span>
-                                    </>
-                                );
-                            })()}
-
-                            <div className="grid grid-cols-2 gap-2">
-                                <span className="font-semibold text-gray-700">Nông dân:</span>
-                                <span className="text-green-600">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-800 text-[14px]">
+                                <span className="font-semibold text-gray-600">Nông dân:</span>
+                                <span className="text-[#5b8c51] font-medium">
                                     {selectedField.info?.farmer
                                         ? `${selectedField.info.farmer.last_name ?? ''} ${selectedField.info.farmer.first_name ?? ''}`
-                                        : selectedField.field?.properties?.name ?? 'Chưa nhận được thông tin'}
+                                        : selectedField.field?.properties?.name ?? 'Chưa có thông tin'}
                                 </span>
 
-                                <span className="font-semibold text-gray-700">Diện tích khoảng:</span>
-                                <span className="text-gray-900">
+                                <span className="font-semibold text-gray-600">Diện tích:</span>
+                                <span className="font-medium">
                                     {Math.round(
                                         selectedField.info?.cornfield?.properties?.area_m2 ||
                                         selectedField.feature?.properties?.area_m2 ||
@@ -827,108 +914,48 @@ export default function MapClient() {
                                     ).toLocaleString()} m²
                                 </span>
 
-                                <span className="font-semibold text-gray-700">Trạng thái:</span>
+                                <span className="font-semibold text-gray-600">Trạng thái:</span>
                                 <span className="font-semibold">
                                     {selectedField.info?.disease_class ? (
-                                        <span style={{ color: diseaseColorMap[selectedField.info.disease_class] || '#333', fontWeight: 600 }}>
+                                        <span
+                                            style={{
+                                                color: diseaseColorMap[selectedField.info.disease_class] || '#333',
+                                                fontWeight: 600,
+                                            }}
+                                        >
                                             {DISEASE_MAP[selectedField.info.disease_class] || selectedField.info.disease_class}
                                         </span>
-                                    ) : 'Không có dữ liệu'}
+                                    ) : (
+                                        'Không có dữ liệu'
+                                    )}
+                                </span>
+
+                                <span className="font-semibold text-gray-600">Cập nhật lúc:</span>
+                                <span className="italic text-gray-700">
+                                    {(() => {
+                                        const dateStr =
+                                            selectedField.info?.updated_at ||
+                                            selectedField.info?.created_at ||
+                                            selectedField.feature?.properties?.created_at;
+                                        const date = new Date(dateStr);
+                                        return isNaN(date.getTime())
+                                            ? 'Chưa có thông tin'
+                                            : date.toLocaleString('vi-VN');
+                                    })()}
                                 </span>
                             </div>
-
-                            {selectedField.info?.image_rel && (
-                                <div className="">
-                                    <div className="overflow-hidden rounded-lg shadow-sm">
-                                        <img
-                                            src={selectedField.info.image_rel}
-                                            alt="Ảnh ruộng"
-                                            className="w-full object-cover transition-transform duration-300 hover:scale-105"
-                                        />
-                                    </div>
-                                    <div className="text-center text-[12px] italic mt-2">
-                                        Hình ảnh ruộng
-                                    </div>
-                                </div>
-
-                            )}
-
                         </div>
 
-                        <ul className="pl-4 space-y-2">
-                            {['confidence', 'temp', 'hum', 'ph', 'soil', 'wind', 'wind_avg', 'lux'].map((key, index) => {
-                                const value = selectedField.info?.[key];
-                                if (value === null || value === undefined) return null;
-
-                                const labelMap: Record<string, string> = {
-                                    confidence: 'Độ tin cậy chuẩn đoán bệnh',
-                                    temp: 'Nhiệt độ',
-                                    hum: 'Độ ẩm',
-                                    ph: 'pH',
-                                    soil: 'Độ ẩm đất',
-                                    wind: 'Gió hiện tại',
-                                    wind_avg: 'Gió trung bình',
-                                    lux: 'Ánh sáng',
-                                };
-
-                                const unitMap: Record<string, string> = {
-                                    confidence: '%',
-                                    temp: '°C',
-                                    hum: '%',
-                                    wind: ' m/s',
-                                    wind_avg: ' m/s',
-                                    lux: ' lux',
-                                };
-
-                                let color = '#333';
-                                if (key === 'confidence') {
-                                    const perc = Math.min(Math.max(value, 0), 1) * 100;
-                                    if (perc >= 75) color = '#33CC00';
-                                    else if (perc >= 50) color = '#FFCC00';
-                                    else if (perc >= 25) color = '#fb00ffff';
-                                    else color = '#CC3300';
-                                }
-
-                                return (
-                                    <li
-                                        key={key}
-                                        className="relative p-3 rounded-xl bg-gradient-to-r from-white to-gray-50 text-gray-900 shadow-md transform translate-y-3 opacity-0 hover:translate-x-1 hover:shadow-lg transition-all duration-400 ease-out"
-                                        style={{
-                                            animation: `fadeSlideIn 0.5s forwards`,
-                                            animationDelay: `${index * 0.1}s`,
-                                        }}
-                                    >
-                                        <span className="font-semibold">{labelMap[key]}:</span>{' '}
-                                        <span className="font-medium" style={{ color }}>
-                                            {key === 'confidence' ? (value * 100).toFixed(1) + '%' : value + (unitMap[key] ?? '')}
-                                        </span>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-
+                        <FieldMetrics info={selectedField.info} />
                         <button
                             onClick={() => setSelectedField(null)}
-                            style={{
-                                position: 'absolute',
-                                top: 90,
-                                left: '35.8%',
-                                transform: 'translateX(-50%)',
-                                background: '#ffff',
-                                color: 'green',
-                                border: 'none',
-                                padding: '8px 14px',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                fontWeight: 600,
-                                boxShadow: '0 2px 6px rgba(43, 238, 9, 0.3)',
-                            }}
+                            className="fixed top-0 left-[94%] transform -translate-x-1/2 bg-white text-green-600 border-none px-4 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
                         >
                             Đóng
                         </button>
                     </div>
                 ) : (
-                    <div style={{ color: '#777', textAlign: 'center', marginTop: '40%' }}>
+                    <div className="text-gray-500 text-center mt-[40%] italic">
                         Ấn vào 1 ruộng để xem chi tiết 🌱
                     </div>
                 )}

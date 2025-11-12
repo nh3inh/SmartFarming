@@ -17,7 +17,7 @@ export default function Footer({ className }: FooterProps) {
             <div className="px-6 md:px-20 py-12 grid grid-cols-1 md:grid-cols-3 gap-8  bg-[#f8f7f0]">
                 {/* Logo + giới thiệu */}
                 <div>
-                    <div className="flex items-center text-2xl font-bold text-[#5b8c51]">
+                    <div className="flex items-center text-2xl font-bold text-[#5b8c51] ">
                         <Link href="/home" className="flex items-center space-x-2">
                             <Image
                                 src="/logo.png"
@@ -48,9 +48,9 @@ export default function Footer({ className }: FooterProps) {
                         <div>
                             <h4 className="font-semibold mb-2">Liên kết hữu ích</h4>
                             <ul className="space-y-1">
-                                <li><a href="/blog" className="hover:text-green-600">Bài viết</a></li>
-                                <li><a href="/about" className="hover:text-green-600">Về chúng tôi</a></li>
-                                <li><a href="/contact" className="hover:text-green-600">Liên hệ</a></li>
+                                <li><a href="/blog" className="hover:text-[#5b8c51] ">Bài viết</a></li>
+                                <li><a href="/about" className="hover:text-[#5b8c51] ">Về chúng tôi</a></li>
+                                <li><a href="/contact" className="hover:text-[#5b8c51] ">Liên hệ</a></li>
                             </ul>
                         </div>
                         <div>
@@ -74,8 +74,8 @@ export default function Footer({ className }: FooterProps) {
             {/* Phần cuối */}
             <div className="bg-[#f8f7f0] border-t text-sm text-gray-600 flex flex-col md:flex-row justify-between items-center px-6 md:px-20 py-4">
                 <div className="flex space-x-4 mb-2 md:mb-0">
-                    <a href="/terms-and-conditions" className="hover:text-green-600">Điều khoản & Điều kiện</a>
-                    <a href="/privacy-policy" className="hover:text-green-600">Chính sách bảo mật</a>
+                    <a href="/terms-and-conditions" className="hover:text-[#5b8c51] ">Điều khoản & Điều kiện</a>
+                    <a href="/privacy-policy" className="hover:text-[#5b8c51] ">Chính sách bảo mật</a>
                 </div>
                 <p>© Bản quyền 2025 - SmartFarming (Canh tác thông minh)</p>
             </div>

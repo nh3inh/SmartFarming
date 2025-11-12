@@ -76,7 +76,7 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
                             <Link
                                 href={item.href}
                                 onClick={() => setOpen(false)}
-                                className="block px-4 py-3 text-gray-800 border-b-4 border-transparent hover:text-[#5b8c51] hover:border-[#5b8c51] transition-colors duration-200"
+                                className="block px-4 py-3 text-gray-800 border-b-4 border-transparent hover:text-[#5b8c51]  hover:border-[#5b8c51] transition-colors duration-200"
                             >
                                 {item.label}
                             </Link>
@@ -86,7 +86,7 @@ export default function UserDropdown({ avatar }: UserDropdownProps) {
                         <li>
                             <button
                                 onClick={handleLogout}
-                                className="w-full text-left px-4 py-3 text-gray-800 hover:text-[#5b8c51] border-transparent border-b-4 hover:border-[#5b8c51] transition-colors duration-200 cursor-pointer"
+                                className="w-full text-left px-4 py-3 text-gray-800 hover:text-[#5b8c51]  border-transparent border-b-4 hover:border-[#5b8c51] transition-colors duration-200 cursor-pointer"
                             >
                                 Đăng xuất
                             </button>

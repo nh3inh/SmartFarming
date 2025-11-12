@@ -51,6 +51,15 @@ AWS_MODEL_PATH = os.getenv(
     "Private/Model/efficientnet_model.keras"
 ) 
 
+# OpenAI configuration
+GPT_OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# OpenWeather configuration
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+
+# Internal api configuration
+INTERNAL_API_BASE = os.getenv("INTERNAL_API_BASE")
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

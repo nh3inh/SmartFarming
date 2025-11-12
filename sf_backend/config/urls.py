@@ -23,6 +23,7 @@ from contact import urls as contact_urls
 from blog import urls as blog_urls
 from observation import urls as observation_urls
 from ml_models import urls as ml_model_urls
+from ai import urls as ai_urls
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -33,4 +34,5 @@ urlpatterns = [
     path("api/blog/", include('blog.urls')),
     path("api/observation/", include("observation.urls")),
     path("api/ml_models/", include("ml_models.urls")),
+    path("api/ai/", include("ai.urls")),
 ]

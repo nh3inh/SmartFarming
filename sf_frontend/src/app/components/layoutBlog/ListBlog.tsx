@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import Container from "@/app/layout/Container"
 
 interface Blog {
   id: number;
@@ -28,7 +29,6 @@ export default function BlogPage() {
   const searchParams = useSearchParams();
   const rawPage = searchParams.get("page");
 
-  // ✅ Ép page về 1 nếu không hợp lệ
   const page = !rawPage || isNaN(Number(rawPage)) || Number(rawPage) < 1
     ? 1
     : Number(rawPage);
@@ -40,7 +40,6 @@ export default function BlogPage() {
     async function fetchBlogs() {
       setLoading(true);
       try {
-        // ✅ FE luôn gọi query param
         const url = `http://localhost:8000/api/blog/list_blog/?page=${page}`;
 
         const res = await fetch(url);
@@ -61,9 +60,7 @@ export default function BlogPage() {
   if (!data) return <p className="text-center py-10">Không có dữ liệu blog</p>;
 
   return (
-    <div className="max-w-6xl mx-auto py-10 px-4">
-      <h1 className="mb-12 text-[#5b8c51] text-center font-bold text-[28px]"> TIN TỨC & BÀI VIẾT</h1>
-
+    <Container className="mx-auto px-4 pb-10  ">
       {data.items && data.items.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {data.items.map((blog) => (
@@ -106,7 +103,6 @@ export default function BlogPage() {
         <p className="text-center text-gray-500 mt-10">Không tải được bài viết.</p>
       )}
 
-      {/* Pagination */}
       <div className="flex justify-center gap-3 mt-10">
         {data.has_prev && (
           <Link
@@ -117,17 +113,17 @@ export default function BlogPage() {
           </Link>
         )}
 
-        <span className="px-4 py-2 border rounded bg-gray-200">{page}</span>
+        <span className="px-4 py-2 border rounded bg-yellow-300">{page}</span>
 
         {data.has_next && (
           <Link
             href={`/blog?page=${page + 1}`}
-            className="px-4 py-2 border rounded hover:bg-gray-100"
+            className="px-4 py-2 border rounded bg-yellow-300 hover:bg-yellow-400"
           >
             Sau →
           </Link>
         )}
       </div>
-    </div>
+    </Container>
   );
 }

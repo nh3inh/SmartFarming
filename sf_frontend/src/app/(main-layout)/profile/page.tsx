@@ -6,6 +6,7 @@ import Navbar from "@/app/layout/Navbar";
 import Footer from "@/app/layout/Footer";
 import { Map, Cpu, Bot, Thermometer, Droplet, SunMedium } from "lucide-react";
 import { getUserProfile, UserData } from "@/services/userService";
+import { useRouter } from "next/navigation";
 
 interface CornfieldData {
     id: number;
@@ -101,15 +102,20 @@ const ProfilePage: React.FC = () => {
 
     const roleMap: Record<string, string> = { user: "Nông dân", admin: "Quản trị viên" };
     const roleName = roleMap[user?.role || ""] || "";
-
+    const router = useRouter();
     const totalArea = fields.reduce((sum, f) => sum + f.cornfield.properties.area_m2, 0);
+
+    const goToAssetAndHighlight = (farmerId: number, cornfieldId: number) => {
+        const key = `${farmerId}-${cornfieldId}`;
+        localStorage.setItem("highlightFieldKey", key);
+        router.push("/profile/asset");
+    };
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-b from-green-50 to-green-100">
             <Navbar />
 
             <main className="flex-1 px-6 py-12 max-w-6xl mx-auto">
-                {/* Header profile */}
                 <motion.div
                     initial={{ opacity: 0, y: -30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -121,10 +127,9 @@ const ProfilePage: React.FC = () => {
                     <h1 className="text-3xl font-bold" style={{ color: '#fcd34d' }}>
                         {user?.first_name} {user?.last_name}
                     </h1>
-                    <p className="text-green-700 text-lg">{roleName}</p>
+                    <p className="text-[#5b8c51] text-lg">{roleName}</p>
                 </motion.div>
 
-                {/* Stats */}
                 <motion.div
                     className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
                     initial={{ opacity: 0 }}
@@ -132,23 +137,22 @@ const ProfilePage: React.FC = () => {
                     transition={{ delay: 0.2 }}
                 >
                     <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
-                        <Map className="w-10 h-10 text-green-700 mx-auto mb-2" />
+                        <Map className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{fields.length}</p>
                         <p className="text-gray-600">Số ruộng</p>
                     </div>
                     <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
-                        <Cpu className="w-10 h-10 text-green-700 mx-auto mb-2" />
+                        <Cpu className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{fields.length}</p>
-                        <p className="text-gray-600">Thiết bị IoT</p>
+                        <p className="text-gray-600">Hệ thống IoT</p>
                     </div>
                     <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
-                        <Bot className="w-10 h-10 text-green-700 mx-auto mb-2" />
+                        <Bot className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{totalArea.toFixed(0)} m²</p>
                         <p className="text-gray-600">Tổng diện tích</p>
                     </div>
                 </motion.div>
 
-                {/* List fields */}
                 <motion.div
                     className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     initial={{ opacity: 0 }}
@@ -169,7 +173,7 @@ const ProfilePage: React.FC = () => {
                             )}
                             <div className="flex-1 flex flex-col justify-between">
                                 <div>
-                                    <h3 className="text-green-800 font-bold text-xl mb-2">
+                                    <h3 className="text-[#5b8c51]  font-bold text-xl mb-2">
                                         {field.cornfield.properties.name}
                                     </h3>
                                     <p className="text-gray-700 mb-1">
@@ -188,6 +192,12 @@ const ProfilePage: React.FC = () => {
                                     </p>
                                 </div>
                             </div>
+                            <button
+                                onClick={() => goToAssetAndHighlight(field.farmer.id, field.cornfield.id)}
+                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                            >
+                                Xem chi tiết
+                            </button>
                         </motion.div>
                     ))}
                 </motion.div>

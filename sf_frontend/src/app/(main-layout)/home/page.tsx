@@ -28,7 +28,7 @@ export default function HomePage() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
-                            className="border px-4 py-1 rounded-full text-sm uppercase tracking-wider mb-4 hover:bg-white hover:text-green-800"
+                            className="border px-4 py-1 rounded-full text-sm uppercase tracking-wider mb-4 hover:bg-white hover:text-[#5b8c51] "
                         >
                             Hãy tin vào chất lượng!
                         </motion.button>
@@ -42,7 +42,7 @@ export default function HomePage() {
                             bảo vệ môi trường.
                         </p>
 
-                        <button className="bg-white text-green-800 font-semibold px-6 py-3 rounded-full flex items-center space-x-2 hover:bg-gray-200">
+                        <button className="bg-white text-[#5b8c51]  font-semibold px-6 py-3 rounded-full flex items-center space-x-2 hover:bg-gray-200">
                             <span>Liên hệ với chúng tôi</span>
                             <ArrowRight size={18} />
                         </button>
@@ -64,7 +64,7 @@ export default function HomePage() {
                     </motion.div>
                 </div>
 
-                <section className="bg-white text-gray-800 py-20 min-h-screen">
+                <section className="bg-white text-gray-800 py-20">
                     <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
                         <motion.img
                             src="/farm-drone.jpg"
@@ -79,7 +79,7 @@ export default function HomePage() {
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8 }}
                         >
-                            <h2 className="text-3xl font-bold text-green-700 mb-4">
+                            <h2 className="text-3xl font-bold text-[#5b8c51] mb-4">
                                 Về dự án
                             </h2>
                             <p className="text-lg leading-relaxed mb-4">
@@ -96,13 +96,13 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                <section className="bg-gradient-to-r from-green-50 to-green-100 py-20 text-gray-800 min-h-screen">
+                <section className="bg-gradient-to-r from-green-50 to-green-100 py-20 text-gray-800">
                     <div className="max-w-7xl mx-auto px-6 text-center">
                         <motion.h2
                             initial={{ opacity: 0, y: 20 }}
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
-                            className="text-3xl font-bold text-green-700 mb-12"
+                            className="text-3xl font-bold text-[#5b8c51] mb-12"
                         >
                             Công nghệ chúng tôi sử dụng 💡
                         </motion.h2>
@@ -135,7 +135,7 @@ export default function HomePage() {
                                     whileHover={{ scale: 1.05 }}
                                     className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition"
                                 >
-                                    <div className="text-green-700 mb-4 flex justify-center">
+                                    <div className="text-[#5b8c51]  mb-4 flex justify-center">
                                         {f.icon}
                                     </div>
                                     <h3 className="text-lg font-semibold mb-2">{f.title}</h3>
@@ -143,87 +143,6 @@ export default function HomePage() {
                                 </motion.div>
                             ))}
                         </div>
-                    </div>
-                </section>
-
-                <section className="bg-white py-16 min-h-screen">
-                    <div className="max-w-7xl mx-auto text-center">
-                        <motion.h2
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                            className="text-3xl font-bold text-green-700 mb-10"
-                        >
-                            Giám sát ruộng lúa theo thời gian thực 🌾
-                        </motion.h2>
-
-                        <div className="grid md:grid-cols-4 gap-8">
-                            {[
-                                { title: "Nhiệt độ", icon: "🌡️", value: "30.5°C" },
-                                { title: "Độ ẩm", icon: "💧", value: "72%" },
-                                { title: "Độ pH", icon: "⚗️", value: "6.3" },
-                                { title: "Ánh sáng", icon: "☀️", value: "38 lx" },
-                            ].map((sensor, i) => (
-                                <motion.div
-                                    key={i}
-                                    whileHover={{ scale: 1.05 }}
-                                    className="bg-green-50 p-6 rounded-2xl shadow-md hover:shadow-lg transition"
-                                >
-                                    <div className="text-4xl mb-2">{sensor.icon}</div>
-                                    <h3 className="text-lg font-semibold text-gray-700">{sensor.title}</h3>
-                                    <p className="text-gray-600">{sensor.value}</p>
-                                </motion.div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-
-                <section className="bg-gradient-to-r from-green-600 to-green-800 py-20 text-center text-white">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-3xl font-bold mb-6"
-                    >
-                        Chatbot hỗ trợ nông dân 🤖
-                    </motion.h2>
-                    <p className="max-w-2xl mx-auto text-gray-200 mb-10 text-lg">
-                        Hỏi – đáp về cách chăm sóc lúa, dự báo thời tiết, tưới tiêu, hoặc
-                        phát hiện sâu bệnh. Chatbot của chúng tôi học từ dữ liệu thực tế
-                        tại đồng ruộng Việt Nam.
-                    </p>
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        className="bg-white text-green-700 inline-block px-8 py-4 rounded-full font-semibold shadow-lg hover:bg-yellow-300 transition"
-                    >
-                        Trò chuyện ngay →
-                    </motion.div>
-                </section>
-
-                <section className="bg-white py-20 text-center">
-                    <motion.h2
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-3xl font-bold text-green-700 mb-10"
-                    >
-                        Đội ngũ phát triển 👨‍💻
-                    </motion.h2>
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 px-6 justify-items-center text-gray-700">
-                        {[
-                            { name: "Nguyễn Kim Thùy", role: "hihi" },
-                            { name: "Nguyễn Hoài Linh", role: "hehe" },
-                        ].map((member, i) => (
-                            <motion.div
-                                key={i}
-                                whileHover={{ scale: 1.05 }}
-                                className="bg-green-50 rounded-2xl shadow-md p-6 w-80"
-                            >
-                                <Users className="mx-auto text-green-700 mb-3" size={36} />
-                                <h3 className="font-bold text-lg">{member.name}</h3>
-                                <p className="text-gray-600">{member.role}</p>
-                            </motion.div>
-                        ))}
                     </div>
                 </section>
 
@@ -237,7 +156,7 @@ export default function HomePage() {
                     <motion.button
                         whileHover={{ scale: 1.1 }}
                         onClick={() => router.push("/contact")}
-                        className="bg-white text-green-700 font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-gray-200 transition"
+                        className="bg-white text-[#5b8c51] font-semibold px-8 py-3 rounded-full shadow-lg hover:bg-gray-200 transition"
                     >
                         Liên hệ ngay →
                     </motion.button>

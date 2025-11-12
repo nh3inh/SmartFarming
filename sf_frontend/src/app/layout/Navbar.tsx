@@ -19,7 +19,6 @@ export default function Navbar({ className }: NavbarProps) {
     const [user, setUser] = useState<UserData | null>(null);
     const navItems = [
         { href: "/home", label: "Trang chủ" },
-        { href: "/products", label: "Sản phẩm" },
         { href: "/blog", label: "Tin tức" },
         { href: "/about", label: "Về chúng tôi" },
         { href: "/contact", label: "Liên hệ" },
@@ -49,7 +48,7 @@ export default function Navbar({ className }: NavbarProps) {
         >
             <nav className="flex items-center justify-between w-full text-[#404a3d]">
                 {/* Logo + Text */}
-                <div className="flex items-center text-2xl font-bold text-[#5b8c51]">
+                <div className="flex items-center text-2xl font-bold text-[#5b8c51] ">
                     <Link href="/home" className="flex items-center space-x-2">
                         <Image
                             src="/logo.png"
@@ -75,7 +74,7 @@ export default function Navbar({ className }: NavbarProps) {
                                     className={`px-3 py-1 rounded-full transition-colors duration-200
                                         ${isActive
                                             ? "text-yellow-400"
-                                            : "hover:text-[#5b8c51]"
+                                            : "hover:text-[#5b8c51] "
                                         }`}
                                 >
                                     {item.label}
@@ -85,14 +84,13 @@ export default function Navbar({ className }: NavbarProps) {
                     })}
                 </ul>
 
-
                 {/* Desktop: Phone + Button + UserDropdown */}
                 <div className="hidden lg:flex items-center space-x-4">
                     <div className="flex items-center space-x-2">
                         <Phone size={18} />
                         <span>+84 3952 2540</span>
                     </div>
-                    <button className="bg-yellow-300 text-green-800 font-semibold px-5 py-2 rounded-full shadow hover:bg-yellow-400 cursor-pointer">
+                    <button className="bg-yellow-300 text-[#5b8c51]  font-semibold px-5 py-2 rounded-full shadow hover:bg-yellow-400 cursor-pointer">
                         Liên hệ →
                     </button>
                     <UserDropdown avatar={userAvatar} />
@@ -103,7 +101,7 @@ export default function Navbar({ className }: NavbarProps) {
                     <UserDropdown avatar={userAvatar} />
                     <button
                         onClick={() => setIsOpen(!isOpen)}
-                        className="p-2 rounded focus:outline-none hover:text-[#5b8c51] cursor-pointer"
+                        className="p-2 rounded focus:outline-none hover:text-[#5b8c51]  cursor-pointer"
                     >
                         {isOpen ? <X size={28} /> : <Menu size={28} />}
                     </button>
@@ -129,7 +127,7 @@ export default function Navbar({ className }: NavbarProps) {
                                                 className={`inline-block w-[20%] transition-colors duration-200 border-b-4
                                                 ${isActive
                                                         ? "text-yellow-600 border-yellow-500"
-                                                        : "text-gray-800 border-transparent hover:text-[#5b8c51] hover:border-[#5b8c51]"}`}
+                                                        : "text-gray-800 border-transparent hover:text-[#5b8c51]  hover:border-[#5b8c51]"}`}
                                             >
                                                 {item.label}
                                             </span>

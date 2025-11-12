@@ -9,7 +9,7 @@ export default function PrivacyPolicyPage() {
             <Navbar />
 
             <main className="flex-1 px-6 md:px-20 py-12 max-w-4xl mx-auto text-gray-800">
-                <h1 className="text-3xl md:text-4xl font-bold text-green-700 mb-6">
+                <h1 className="text-3xl md:text-4xl font-bold text-[#5b8c51] mb-6">
                     Chính sách bảo mật
                 </h1>
 
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
                 </p>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">1. Thông tin chúng tôi thu thập</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">1. Thông tin chúng tôi thu thập</h2>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Thông tin cá nhân: Họ tên, email, số điện thoại, địa chỉ.</li>
                         <li>Thông tin kỹ thuật: Địa chỉ IP, loại trình duyệt, thiết bị, cookie.</li>
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">2. Cách chúng tôi sử dụng thông tin</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">2. Cách chúng tôi sử dụng thông tin</h2>
                     <p className="mb-2">Dữ liệu của bạn được sử dụng cho các mục đích sau:</p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Cung cấp và cải thiện chất lượng dịch vụ SmartFarming.</li>
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">3. Bảo mật dữ liệu</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">3. Bảo mật dữ liệu</h2>
                     <p>
                         Chúng tôi áp dụng các biện pháp kỹ thuật và tổ chức phù hợp để bảo vệ dữ liệu cá nhân khỏi mất mát,
                         truy cập trái phép, tiết lộ hoặc thay đổi. Tuy nhiên, không có hệ thống nào đảm bảo an toàn tuyệt đối,
@@ -49,7 +49,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">4. Chia sẻ thông tin</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">4. Chia sẻ thông tin</h2>
                     <p className="mb-2">SmartFarming cam kết không bán hoặc trao đổi thông tin cá nhân của bạn. Tuy nhiên, dữ liệu có thể được chia sẻ với:</p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Đối tác tin cậy hỗ trợ cung cấp dịch vụ.</li>
@@ -58,7 +58,7 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">5. Quyền của người dùng</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">5. Quyền của người dùng</h2>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Quyền truy cập, chỉnh sửa hoặc xóa thông tin cá nhân.</li>
                         <li>Quyền từ chối nhận email quảng cáo hoặc thông tin tiếp thị.</li>
@@ -67,10 +67,10 @@ export default function PrivacyPolicyPage() {
                 </section>
 
                 <section>
-                    <h2 className="text-2xl font-semibold text-green-700 mb-3">6. Liên hệ</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">6. Liên hệ</h2>
                     <p>
                         Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào liên quan đến Chính sách bảo mật, vui lòng liên hệ với chúng tôi qua email:{" "}
-                        <a href="mailto:privacy@smartfarming.vn" className="text-green-600 hover:underline">
+                        <a href="mailto:privacy@smartfarming.vn" className="text-[#5b8c51]  hover:underline">
                             privacy@smartfarming.vn
                         </a>
                     </p>

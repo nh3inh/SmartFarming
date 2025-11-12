@@ -30,7 +30,7 @@ export default function LoginPage() {
         {/* Right side */}
         <div className="w-full md:w-1/2 p-8 flex flex-col justify-center">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-800">
-            Canh tác <span className="text-green-600">thông minh!</span>
+            Canh tác <span className="text-[#5b8c51] ">thông minh!</span>
           </h2>
           <p className="mt-2 text-gray-500 text-sm md:text-base">Đăng nhập bằng tài khoản của bạn</p>
 

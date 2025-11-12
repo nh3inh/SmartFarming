@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from django.core.paginator import Paginator, EmptyPage
 from .models import Blog
 from .serializers import BlogSerializer
-
+from rest_framework.decorators import action
 from .serializers import BlogSerializer
 from .services import BlogService
 
@@ -104,3 +104,11 @@ class BlogViewSet(viewsets.ViewSet):
             return Response({"detail": "Not found"}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({"status": "deleted"}, status=status.HTTP_200_OK)
+    
+    @action(detail=True, methods=['patch'], permission_classes=[AllowAny])
+    def view(self, request, pk=None):
+        blog = BlogService.get_blog(pk)
+        if not blog:
+            return Response({"detail": "Not found"}, status=404)
+        BlogService.increment_viewer(blog)
+        return Response({"status": "view increased"})
