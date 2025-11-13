@@ -6,6 +6,8 @@ import Navbar from "@/app/layout/Navbar";
 import Footer from "@/app/layout/Footer";
 import { Plus, Map, Edit, Trash2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { Info } from "lucide-react";
 import {
     LineChart,
     Line,
@@ -95,9 +97,45 @@ interface TimeSeriesData {
     lux: number;
 }
 
+interface RecommendationPayload {
+    water_payload?: {
+        payload: {
+            action: string;
+            target_level: string;
+            execution_time: string;
+        };
+    };
+    treatment_payload?: {
+        payload: {
+            drug_name: string;
+            active_ingredient: string;
+            timing: string;
+            total_volume: string;
+            notes: string;
+            execution_time: string;
+            mixing_instruction: string;
+        };
+    };
+    fertilizer_payload?: {
+        payload: {
+            summary: string;
+            caution: string;
+            execution_time: string;
+            execution_stage?: {
+                fertilizers_to_apply: {
+                    type: string;
+                    quantity_kg: number;
+                    instructions: string;
+                }[];
+            };
+        };
+    };
+}
+
 export default function AssetPage() {
     const [fields, setFields] = useState<FarmerFieldData[]>([]);
     const [observations, setObservations] = useState<FieldObservation[]>([]);
+    const [observation, setObservation] = useState<FieldObservation[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().slice(0, 10));
@@ -106,7 +144,6 @@ export default function AssetPage() {
     const fieldRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const fieldKey = (farmerId: number, cornfieldId: number) => `${farmerId}-${cornfieldId}`;
     const MapComponent = dynamic(() => import('./MapComponent'), { ssr: false });
-
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<Partial<FarmerFieldData>>({});
     const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -114,6 +151,10 @@ export default function AssetPage() {
     const mapRef = useRef<L.Map | null>(null);
     const allFieldsLayerRef = useRef<L.LayerGroup | null>(null);
     const [selectedField, setSelectedField] = useState<{ feature: any; info?: FarmerFieldData } | null>(null);
+    const [recommendations, setRecommendations] = useState<RecommendationPayload | null>(null);
+    const [recommendationsByField, setRecommendationsByField] = useState<Record<string, RecommendationPayload>>({});
+    const [activeRecModal, setActiveRecModal] = useState<"water" | "treatment" | "fertilizer" | null>(null);
+    const [modalRecData, setModalRecData] = useState<RecommendationPayload | null>(null);
 
     const handleAdd = () => {
         setFormData({});
@@ -239,7 +280,7 @@ export default function AssetPage() {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
             });
-            if (!res.ok) throw new Error("Không thể lấy dữ liệu quan sát.");
+            if (!res.ok) throw new Error("Không thể lấy dữ liệu phân tích.");
             const data = await res.json();
             setObservations(data.data || []);
         } catch (err: any) {
@@ -255,12 +296,25 @@ export default function AssetPage() {
                 headers: { "Content-Type": "application/json" },
                 credentials: "include",
             });
-            if (!res.ok) throw new Error("Không thể lấy dữ liệu quan sát.");
+            if (!res.ok) throw new Error("Không thể lấy dữ liệu.");
             const data = await res.json();
             setObservationImages(data.data || []);
+            setObservation(data.data || []);
+            const recMap: Record<string, RecommendationPayload> = {};
+            (data.data || []).forEach((obs: any) => {
+                const key = `${obs.farmer.id}-${obs.cornfield.id}`;
+                recMap[key] = {
+                    water_payload: obs.water_payload,
+                    treatment_payload: obs.treatment_payload,
+                    fertilizer_payload: obs.fertilizer_payload
+                };
+            });
+            setRecommendationsByField(recMap);
         } catch (err: any) {
-            toast.error(err.message || "Lỗi khi tải dữ liệu ảnh.");
+            toast.error(err.message || "Lỗi khi tải dữ liệu.");
             setObservationImages([]);
+            setObservation([]);
+            setRecommendationsByField({});
         }
     };
 
@@ -370,7 +424,7 @@ export default function AssetPage() {
                                                 onClick={(e) => e.stopPropagation()}
                                             >
                                                 <MapComponent
-                                                    observations={observations.filter(
+                                                    observations={observation.filter(
                                                         obs =>
                                                             obs.farmer.id === field.farmer &&
                                                             obs.cornfield.id === field.cornfield
@@ -456,15 +510,10 @@ export default function AssetPage() {
                     {Object.entries(groupedByField).length === 0 ? (
                         <p className="text-center text-gray-700 py-8">Không có dữ liệu cho ngày này.</p>
                     ) : (
-                        <div
-                            className={`grid gap-8 mb-8 ${Object.entries(groupedByField).length > 1 ? "md:grid-cols-2" : "grid-cols-1"
-                                }`}
-                        >
+                        <div className="flex flex-col gap-8 mb-8">
                             {Object.entries(groupedByField).map(([key, data]) => {
                                 const [farmerId, cornfieldId] = key.split('-').map(Number);
-                                const fieldInfo = fields.find(
-                                    (f) => f.farmer === farmerId && f.cornfield === cornfieldId
-                                );
+                                const fieldInfo = fields.find(f => f.farmer === farmerId && f.cornfield === cornfieldId);
 
                                 const hourlyData = data.map(item => ({
                                     ...item,
@@ -492,75 +541,179 @@ export default function AssetPage() {
                                             </h3>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-[70%_30%] gap-6 p-6">
+                                        <div className="p-2">
+                                            <div className="grid grid-cols-1 md:grid-cols-[60%_40%] gap-6 p-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-6">
+                                                    <div className="flex flex-col">
+                                                        <h2 className="text-lg font-medium text-[#5b8c51] mb-4 text-center">
+                                                            Số liệu đo trong ngày
+                                                        </h2>
+                                                        <ResponsiveContainer width="100%" height={300}>
+                                                            <LineChart data={hourlyData}>
+                                                                <CartesianGrid stroke="#e5e7eb" strokeDasharray="5 5" />
+                                                                <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                                                                <YAxis
+                                                                    yAxisId="left"
+                                                                    label={{ value: "Giá trị", angle: -90, position: "insideLeft", fontSize: 12 }}
+                                                                />
+                                                                <Tooltip labelFormatter={label => `Giờ: ${label}`} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#facc15" name="Nhiệt độ (°C)" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="hum" stroke="#3b82f6" name="Độ ẩm (%)" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="ph" stroke="#f472b6" name="pH" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="soil" stroke="#a3e635" name="Độ ẩm đất" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="wind" stroke="#60a5fa" name="Gió hiện tại" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="wind_avg" stroke="#f87171" name="Gió trung bình" dot={false} />
+                                                                <Line yAxisId="left" type="monotone" dataKey="lux" stroke="#8b5cf6" name="Ánh sáng" dot={false} />
+                                                            </LineChart>
+                                                        </ResponsiveContainer>
+                                                    </div>
 
-                                            <div className="flex flex-col">
-                                                <h2 className="text-lg font-medium text-[#5b8c51] mb-4 text-center">
-                                                    Số liệu đo trong ngày
-                                                </h2>
-                                                <ResponsiveContainer width="100%" height={380}>
-                                                    <LineChart data={hourlyData}>
-                                                        <CartesianGrid stroke="#e5e7eb" strokeDasharray="5 5" />
-                                                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                                                        <YAxis
-                                                            yAxisId="left"
-                                                            label={{
-                                                                value: "Giá trị",
-                                                                angle: -90,
-                                                                position: "insideLeft",
-                                                                fontSize: 12,
-                                                            }}
-                                                        />
-                                                        <Tooltip labelFormatter={(label) => `Giờ: ${label}`} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="temp" stroke="#facc15" name="Nhiệt độ (°C)" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="hum" stroke="#3b82f6" name="Độ ẩm (%)" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="ph" stroke="#f472b6" name="pH" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="soil" stroke="#a3e635" name="Độ ẩm đất" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="wind" stroke="#60a5fa" name="Gió" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="wind_avg" stroke="#f87171" name="Gió trung bình" dot={false} />
-                                                        <Line yAxisId="left" type="monotone" dataKey="lux" stroke="#8b5cf6" name="Ánh sáng" dot={false} />
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            </div>
-
-                                            <div>
-                                                {filteredImages.length > 0 ? (
-                                                    <>
-                                                        <div className="flex flex-wrap justify-center gap-3 mb-4 mt-12">
-                                                            {filteredImages.slice(0, 3).map(obs => (
-                                                                <div
-                                                                    key={obs.id}
-                                                                    className="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shadow hover:shadow-md transition-all"
-                                                                >
-                                                                    <img
-                                                                        src={obs.image_rel}
-                                                                        alt={obs.cornfield.properties.name}
-                                                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                                                                    />
-                                                                </div>
-                                                            ))}
+                                                    <div className="flex flex-col">
+                                                        <div className="flex flex-wrap gap-3 pt-3">
+                                                            {filteredImages.length > 0 ? (
+                                                                filteredImages.slice(0, 3).map(obs => (
+                                                                    <div key={obs.id} className="w-32 h-32 bg-gray-100 rounded-xl overflow-hidden shadow hover:shadow-md transition-all">
+                                                                        <img
+                                                                            src={obs.image_rel}
+                                                                            alt={obs.cornfield.properties.name}
+                                                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                                        />
+                                                                    </div>
+                                                                ))
+                                                            ) : (
+                                                                <p className="text-center text-gray-500 w-full">Chưa có hình ảnh</p>
+                                                            )}
                                                         </div>
-                                                    </>
-                                                ) : (
-                                                    <p className="text-center text-gray-500 mt-8">
-                                                        Chưa có hình ảnh
-                                                    </p>
-                                                )}
 
-                                                <div className="mt-6 text-sm text-gray-600 space-y-2">
-                                                    <h3 className="text-[#5b8c51] font-semibold mb-2 text-center">
-                                                        Chú thích biểu đồ
-                                                    </h3>
-                                                    <ul className="space-y-1 text-xs">
-                                                        <li><span className="inline-block w-3 h-3 bg-[#facc15] rounded-sm mr-2 text-gray-700"></span> Nhiệt độ (°C)</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#3b82f6] rounded-sm mr-2 text-gray-700"></span> Độ ẩm (%)</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#f472b6] rounded-sm mr-2 text-gray-700"></span> pH</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#a3e635] rounded-sm mr-2 text-gray-700"></span> Độ ẩm đất (%)</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#60a5fa] rounded-sm mr-2 text-gray-700"></span> Gió hiện tại (m/s)</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#f87171] rounded-sm mr-2 text-gray-700"></span> Gió trung bình (m/s)</li>
-                                                        <li><span className="inline-block w-3 h-3 bg-[#8b5cf6] rounded-sm mr-2 text-gray-700"></span> Ánh sáng (lux)</li>
-                                                    </ul>
+                                                        <div className="mt-2 text-sm text-gray-600 space-y-2">
+                                                            <h3 className="text-[#5b8c51] font-semibold mb-2">Chú thích biểu đồ</h3>
+                                                            <ul className="space-y-1 text-xs">
+                                                                <li><span className="inline-block w-3 h-3 bg-[#facc15] rounded-sm mr-2"></span> Nhiệt độ (°C)</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#3b82f6] rounded-sm mr-2"></span> Độ ẩm (%)</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#f472b6] rounded-sm mr-2"></span> pH</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#a3e635] rounded-sm mr-2"></span> Độ ẩm đất (%)</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#60a5fa] rounded-sm mr-2"></span> Gió hiện tại (m/s)</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#f87171] rounded-sm mr-2"></span> Gió trung bình (m/s)</li>
+                                                                <li><span className="inline-block w-3 h-3 bg-[#8b5cf6] rounded-sm mr-2"></span> Ánh sáng (lux)</li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
                                                 </div>
+<div className="flex flex-col gap-2">
+  <h4 className="text-sm font-semibold text-gray-700">Gợi ý lịch trình canh tác</h4>
+  
+  {(
+    recommendationsByField[key]?.water_payload?.payload ||
+    recommendationsByField[key]?.treatment_payload?.payload ||
+    recommendationsByField[key]?.fertilizer_payload?.payload
+  ) ? (
+    <div className="flex gap-2">
+      {recommendationsByField[key]?.water_payload?.payload && (
+        <button
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+          onClick={() => { setActiveRecModal("water"); setModalRecData(recommendationsByField[key]); }}
+        >
+          <Info className="w-3 h-3" />
+          Cấp nước
+        </button>
+      )}
+
+      {recommendationsByField[key]?.treatment_payload?.payload && (
+        <button
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200"
+          onClick={() => { setActiveRecModal("treatment"); setModalRecData(recommendationsByField[key]); }}
+        >
+          <Info className="w-3 h-3" />
+          Phun thuốc
+        </button>
+      )}
+
+      {recommendationsByField[key]?.fertilizer_payload?.payload && (
+        <button
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+          onClick={() => { setActiveRecModal("fertilizer"); setModalRecData(recommendationsByField[key]); }}
+        >
+          <Info className="w-3 h-3" />
+          Bón phân
+        </button>
+      )}
+    </div>
+  ) : (
+    <p className="text-sm text-gray-500">Chưa có lịch trình canh tác thích hợp</p>
+  )}
+</div>
+                                                <AnimatePresence>
+                                                    {activeRecModal && modalRecData && (
+                                                        <motion.div
+                                                            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            onClick={() => setActiveRecModal(null)}
+                                                        >
+                                                            <motion.div
+                                                                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative overflow-y-auto max-h-[90vh]"
+                                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0.8, opacity: 0 }}
+                                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <button
+                                                                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+                                                                    onClick={() => setActiveRecModal(null)}
+                                                                >
+                                                                    ✕
+                                                                </button>
+
+                                                                <h2 className="text-2xl font-bold text-[#5b8c51] mb-6 text-center">
+                                                                    {activeRecModal === "water" && "Chi tiết: Cấp nước"}
+                                                                    {activeRecModal === "treatment" && "Chi tiết: Phun thuốc"}
+                                                                    {activeRecModal === "fertilizer" && "Chi tiết: Bón phân"}
+                                                                </h2>
+
+                                                                <div className="space-y-4 text-gray-700">
+                                                                    {activeRecModal === "water" && modalRecData.water_payload?.payload && (
+                                                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                                                            <p><strong>Hành động:</strong> {modalRecData.water_payload.payload.action}</p>
+                                                                            <p><strong>Mức mục tiêu:</strong> {modalRecData.water_payload.payload.target_level}</p>
+                                                                            <p><strong>Thực hiện:</strong> {new Date(modalRecData.water_payload.payload.execution_time).toLocaleString()}</p>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {activeRecModal === "treatment" && modalRecData.treatment_payload?.payload && (
+                                                                        <div className="bg-purple-50 p-4 rounded-lg">
+                                                                            <p><strong>Thuốc:</strong> {modalRecData.treatment_payload.payload.drug_name}</p>
+                                                                            <p><strong>Hoạt chất:</strong> {modalRecData.treatment_payload.payload.active_ingredient}</p>
+                                                                            <p><strong>Lịch phun:</strong> {modalRecData.treatment_payload.payload.timing}</p>
+                                                                            <p><strong>Liều lượng:</strong> {modalRecData.treatment_payload.payload.total_volume}</p>
+                                                                            <p><strong>Hướng dẫn:</strong> {modalRecData.treatment_payload.payload.notes}</p>
+                                                                            <p><strong>Thực hiện:</strong> {new Date(modalRecData.treatment_payload.payload.execution_time).toLocaleString()}</p>
+                                                                            <p><strong>Pha trộn:</strong> {modalRecData.treatment_payload.payload.mixing_instruction}</p>
+                                                                        </div>
+                                                                    )}
+
+                                                                    {activeRecModal === "fertilizer" && modalRecData.fertilizer_payload?.payload && (
+                                                                        <div className="bg-green-50 p-4 rounded-lg">
+                                                                            <p><strong>Tóm tắt:</strong> {modalRecData.fertilizer_payload.payload.summary}</p>
+                                                                            <p><strong>Lưu ý:</strong> {modalRecData.fertilizer_payload.payload.caution}</p>
+                                                                            <p><strong>Thời gian:</strong> {new Date(modalRecData.fertilizer_payload.payload.execution_time).toLocaleString()}</p>
+                                                                            <div className="mt-2 space-y-2">
+                                                                                {modalRecData.fertilizer_payload.payload.execution_stage?.fertilizers_to_apply?.map((f, idx) => (
+                                                                                    <div key={idx} className="border-t border-gray-200 pt-2">
+                                                                                        <p><strong>Loại:</strong> {f.type}</p>
+                                                                                        <p><strong>Số lượng:</strong> {f.quantity_kg} kg</p>
+                                                                                        <p><strong>Hướng dẫn:</strong> {f.instructions}</p>
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </motion.div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -568,7 +721,6 @@ export default function AssetPage() {
                             })}
                         </div>
                     )}
-
                 </Container>
             </main>
             <Footer />

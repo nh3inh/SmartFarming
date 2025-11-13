@@ -1,8 +1,10 @@
 from django.urls import path
-from .views import CornfieldViewSet
 from rest_framework.urlpatterns import format_suffix_patterns
-from .views import CornfieldViewSet, CornfieldInfoViewSet
+from .views import FarmerViewSet, CornfieldViewSet, CornfieldInfoViewSet
 from . import views_firebase
+
+farmer_list = FarmerViewSet.as_view({'get': 'list'})
+farmer_detail = FarmerViewSet.as_view({'get': 'retrieve'})
 
 cornfield_list = CornfieldViewSet.as_view({'get': 'list', 'post': 'create'})
 cornfield_detail = CornfieldViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'})
@@ -24,6 +26,11 @@ cornfield_detail = CornfieldViewSet.as_view({
 })
 
 urlpatterns = [
+    # Farmer
+    path('farmers/', farmer_list, name='farmer-list'),
+    path('farmers/<int:pk>/', farmer_detail, name='farmer-detail'),
+    
+    # Cornfield
     path('', cornfield_list, name='cornfield-list'),
     path('<int:pk>/', cornfield_detail, name='cornfield-detail'),
     
@@ -32,6 +39,7 @@ urlpatterns = [
     path('info/<int:pk>/', CornfieldInfoViewSet.as_view({'get': 'retrieve', 'put': 'update', 'patch': 'partial_update', 'delete': 'destroy'}), name='cornfieldinfo-detail'),
     path('info/my-fields/', CornfieldInfoViewSet.as_view({'get': 'my_fields'}), name='cornfieldinfo-my-fields'),
     path('info/my-field/', CornfieldInfoViewSet.as_view({'get': 'latest_fields'}), name='cornfieldinfo-my-field'),
+    path('info/public/', CornfieldInfoViewSet.as_view({'get': 'earliest_fields_public'}), name='cornfieldinfo-fields-public'),
     
     # Firebase webhook
     path('firebase-webhook/', views_firebase.firebase_webhook, name='firebase_webhook'),

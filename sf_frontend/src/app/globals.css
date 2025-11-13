@@ -212,3 +212,7 @@ textarea::-webkit-scrollbar {
     @apply bg-background text-foreground;
   }
 }
+
+#__next-dev-overlay {
+    display: none !important;
+}

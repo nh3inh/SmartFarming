@@ -136,17 +136,17 @@ const ProfilePage: React.FC = () => {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
+                    <div className="bg-white rounded-2xl shadow p-6 text-center">
                         <Map className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{fields.length}</p>
                         <p className="text-gray-600">Số ruộng</p>
                     </div>
-                    <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
+                    <div className="bg-white rounded-2xl shadow p-6 text-center">
                         <Cpu className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{fields.length}</p>
                         <p className="text-gray-600">Hệ thống IoT</p>
                     </div>
-                    <div className="bg-white rounded-2xl shadow p-6 text-center hover:shadow-2xl transition">
+                    <div className="bg-white rounded-2xl shadow p-6 text-center">
                         <Bot className="w-10 h-10 text-[#5b8c51] mx-auto mb-2" />
                         <p className="text-xl font-bold">{totalArea.toFixed(0)} m²</p>
                         <p className="text-gray-600">Tổng diện tích</p>
@@ -162,7 +162,7 @@ const ProfilePage: React.FC = () => {
                     {fields.map((field) => (
                         <motion.div
                             key={field.id}
-                            className="bg-white rounded-2xl shadow hover:shadow-2xl transition p-6 flex flex-col md:flex-row gap-4"
+                            className="bg-white rounded-2xl shadow p-6 flex flex-col md:flex-row gap-4"
                         >
                             {field.image_rel && (
                                 <img
@@ -194,7 +194,7 @@ const ProfilePage: React.FC = () => {
                             </div>
                             <button
                                 onClick={() => goToAssetAndHighlight(field.farmer.id, field.cornfield.id)}
-                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                                className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-bold"
                             >
                                 Xem chi tiết
                             </button>

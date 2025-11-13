@@ -1,3 +1,4 @@
+import json
 from rest_framework_gis.serializers import GeoFeatureModelSerializer
 from rest_framework import serializers
 from .models import Cornfield, Farmer, CornfieldInfo
@@ -23,8 +24,19 @@ class CornfieldSerializer(GeoFeatureModelSerializer):
         area = geom_proj.area
 
         return Cornfield.objects.create(geom=geom_data, area_m2=area, **validated_data)
+    def update(self, instance, validated_data):
+        geom_data = validated_data.pop('geom', None)
+        if geom_data:
+            if isinstance(geom_data, dict):
+                geom_data = GEOSGeometry(json.dumps(geom_data))
+            geom_proj = geom_data.transform(3857, clone=True)
+            instance.area_m2 = geom_proj.area
+            instance.geom = geom_data
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
     
-# CornfieldInfo Serializer
 class CornfieldInfoSerializer(serializers.ModelSerializer):
     farmer = FarmerSerializer(
         read_only=True
@@ -65,6 +77,10 @@ class CornfieldInfoSerializer(serializers.ModelSerializer):
             "wind_avg",
             "lux",
             "status",
+            "severity",
+            "treatment_payload",
+            "fertilizer_payload",
+            "water_payload",
             "created_at",
             "updated_at",
         ]

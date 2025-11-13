@@ -66,7 +66,11 @@ class CornfieldInfo(models.Model):
     lux = models.FloatField(null=True, blank=True)
 
     status = models.IntegerField(default=0)
-
+    severity = models.CharField(max_length=50, blank=True, null=True)
+    treatment_payload = models.JSONField(default=dict, blank=True)
+    fertilizer_payload = models.JSONField(default=dict, blank=True)
+    water_payload = models.JSONField(default=dict, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

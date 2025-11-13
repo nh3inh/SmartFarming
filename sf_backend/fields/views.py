@@ -1,12 +1,13 @@
+import requests
 from rest_framework import viewsets
 from .models import Cornfield, Farmer, CornfieldInfo
-from .serializers import CornfieldSerializer, CornfieldInfoSerializer
+from .serializers import CornfieldSerializer, CornfieldInfoSerializer, FarmerSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.contrib.gis.geos import Point
 from rest_framework import permissions
 from django.http import JsonResponse
-import requests
+from django.db.models import Max, Min
 from django.db.models import Max
 
 class CornfieldViewSet(viewsets.ModelViewSet):
@@ -15,7 +16,7 @@ class CornfieldViewSet(viewsets.ModelViewSet):
 
 class FarmerViewSet(viewsets.ModelViewSet):
     queryset = Farmer.objects.all()
-    serializer_class = None
+    serializer_class = FarmerSerializer
 
 class CornfieldInfoViewSet(viewsets.ModelViewSet):
     queryset = CornfieldInfo.objects.all()
@@ -90,6 +91,39 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
                 farmer_id=info['farmer_id'],
                 cornfield_id=info['cornfield_id'],
                 created_at=info['latest_created']
+            ).first()
+            if record:
+                results.append(record)
+
+        serializer = self.get_serializer(results, many=True)
+
+        return Response({
+            "success": True,
+            "count": len(serializer.data),
+            "data": serializer.data
+        })
+        
+    @action(detail=False, methods=['get'], url_path='earliest-fields-public', permission_classes=[])
+    def earliest_fields_public(self, request):
+        """
+        API public: trả về bản ghi có created_at sớm nhất cho mỗi cặp (farmer_id, cornfield_id)
+        Không cần xác thực.
+        Response giống /cornfields/info/
+        """
+        all_infos = self.queryset.all()
+
+        earliest_infos = (
+            all_infos
+            .values('farmer_id', 'cornfield_id')
+            .annotate(earliest_created=Max('created_at'))
+        )
+
+        results = []
+        for info in earliest_infos:
+            record = all_infos.filter(
+                farmer_id=info['farmer_id'],
+                cornfield_id=info['cornfield_id'],
+                created_at=info['earliest_created']
             ).first()
             if record:
                 results.append(record)

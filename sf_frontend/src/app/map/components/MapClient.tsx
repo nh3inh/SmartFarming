@@ -10,10 +10,40 @@ import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import WKT from 'terraformer-wkt-parser';
 import FieldMetrics from "./FieldMetrics";
+import * as wellknown from 'wellknown';
+import { toast } from 'react-hot-toast';
 
 interface SelectedField {
     feature: any;
     info: any;
+}
+
+function createButton(text: string, onClick: () => void) {
+    const btn = L.DomUtil.create('button', '');
+    btn.type = 'button';
+    btn.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%">${text}</span>`;
+    Object.assign(btn.style, {
+        width: '120px',
+        backgroundColor: 'white',
+        padding: '8px 12px',
+        border: '1px solid #888',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+        fontSize: '14px',
+        fontWeight: '500',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '6px',
+        marginBottom: '6px',
+    });
+    L.DomEvent.on(btn, 'click', e => {
+        L.DomEvent.stopPropagation(e);
+        L.DomEvent.preventDefault(e);
+        onClick();
+    });
+    return btn;
 }
 
 export default function MapClient() {
@@ -24,7 +54,6 @@ export default function MapClient() {
     const allFieldsLayerRef = useRef<L.FeatureGroup | null>(null);
     const [selectedField, setSelectedField] = useState<any>(null);
     const [cornfields, setCornfields] = useState<any[]>([]);
-
     const diseaseColorMap: Record<string, string> = {
         healthy_10: "#E6FFE6",
         healthy_20: "#CCFFCC",
@@ -133,10 +162,6 @@ export default function MapClient() {
     }, []);
 
     useEffect(() => {
-        console.log('useEffect chạy rồi 2');
-    }, []);
-
-    useEffect(() => {
         const timer = setTimeout(() => {
             mapRef.current?.invalidateSize();
         }, 250);
@@ -162,7 +187,6 @@ export default function MapClient() {
         };
     }, []);
 
-    // khởi tạo map & tải dữ liệu
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
@@ -172,7 +196,6 @@ export default function MapClient() {
             return;
         }
 
-        // biểu tượng marker
         const svgString = renderToString(
             <MapPin
                 size={34}
@@ -191,7 +214,6 @@ export default function MapClient() {
             popupAnchor: [0, -30],
         });
 
-        // khởi tạo bản đồ
         const map = L.map(mapElement, {
             center: [10.8738, 106.5899],
             zoom: 12,
@@ -212,7 +234,6 @@ export default function MapClient() {
         //     .catch(err => console.error('Không thể tải metadata Esri:', err));
         // https://livingatlas.arcgis.com/wayback/#mapCenter=116.40978%2C39.51004%2C14&mode=explore&active=20512
 
-        // lớp nền
         const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap contributors',
@@ -232,7 +253,6 @@ export default function MapClient() {
             )
             .addTo(map);
 
-        // tải geojson xã Hóc Môn
         fetch('/hocmon.geojson')
             .then(res => res.json())
             .then(data => {
@@ -249,67 +269,28 @@ export default function MapClient() {
             })
             .catch(err => console.error('Lỗi tải ranh giới Hóc Môn:', err));
 
-        // Lớp chứa các ruộng
         const allFieldsLayer = new L.FeatureGroup();
         allFieldsLayer.addTo(map);
         allFieldsLayerRef.current = allFieldsLayer;
 
-        // Tải tất cả ruộng đã được vẽ
         async function fetchAllFields() {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/`);
             if (!res.ok) throw new Error(`Lỗi tải tất cả ruộng: ${res.statusText}`);
             return await res.json();
         }
 
-        // Tải thông tin tất cả ruộng
         async function fetchAllUserFieldsInfo() {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/public/`);
             if (!res.ok) throw new Error(`Lỗi tải ruộng tất cả nông dân: ${res.statusText}`);
             return await res.json();
         }
 
-        // Tải ruộng của user hiện tại
         async function fetchMyFields() {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/my-fields/`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/my-field/`, {
                 credentials: "include",
             });
             if (!res.ok) throw new Error(`Lỗi tải ruộng người dùng: ${res.statusText}`);
             return await res.json();
-        }
-
-        function getLatestFieldsPerPair(fields: any[]) {
-            const map = new Map<string, any>();
-
-            fields.forEach(f => {
-                const cornfieldId = f.cornfield?.id;
-                const farmerId = f.farmer?.id;
-                if (!cornfieldId || !farmerId) return;
-
-                const key = `${cornfieldId}-${farmerId}`;
-
-                const createdAt =
-                    f.created_at ||
-                    f.updated_at ||
-                    f.cornfield?.created_at ||
-                    f.cornfield?.updated_at ||
-                    f.cornfield?.properties?.created_at ||
-                    f.cornfield?.properties?.updated_at ||
-                    null;
-
-                if (!createdAt) return;
-
-                const newTime = new Date(createdAt).getTime();
-                if (isNaN(newTime)) return;
-
-                const existing = map.get(key);
-                const existingTime = existing?._timestamp || 0;
-
-                if (!existing || newTime > existingTime) {
-                    map.set(key, { ...f, _timestamp: newTime });
-                }
-            });
-
-            return Array.from(map.values());
         }
 
         // Hàm hiển thị ruộng lên bản đồ
@@ -353,6 +334,7 @@ export default function MapClient() {
 
                 layer.eachLayer((l: any) => {
                     l._cornfieldId = feature.properties.id;
+                    l.id = feature.properties.id;
                     l.on('click', () => {
                         setSelectedField({ feature, info });
                     });
@@ -496,7 +478,7 @@ export default function MapClient() {
             container.style.zIndex = '1000';
 
             container.innerHTML = `
-        <strong>Lọc ruộng 🌾</strong>
+        <strong>🌾Lọc ruộng</strong>
         <select id="field-filter-select" style="
             width:100%;
             padding:4px;
@@ -513,9 +495,7 @@ export default function MapClient() {
             <option value="bacterial_leaf_blight">Cháy bìa lá</option>
         </select>
     `;
-
             L.DomEvent.on(container, 'click', e => L.DomEvent.stopPropagation(e));
-
             return container;
         };
         filterControl.addTo(map);
@@ -532,8 +512,7 @@ export default function MapClient() {
                         .map((f: any) => f.cornfield?.id as number)
                         .filter((id: number) => !!id)
                 );
-                const latestInfo = getLatestFieldsPerPair(allInfo?.data || allInfo || []);
-                renderFieldsOnMap(allData, myFieldIds, latestInfo);
+                renderFieldsOnMap(allData, myFieldIds, allInfo?.data || allInfo || []);
             } catch (err) {
                 console.error("Lỗi tải ruộng:", err);
             }
@@ -568,7 +547,7 @@ export default function MapClient() {
                     );
 
                     const allInfoData = Array.isArray(allInfo?.data) ? allInfo.data : (Array.isArray(allInfo) ? allInfo : (allInfo?.data ?? []));
-                    const latestAllInfoData = getLatestFieldsPerPair(allInfoData || []);
+                    const latestAllInfoData = allInfoData || [];
                     const statusMap = new Map<number, number>();
                     (allInfoData || []).forEach((f: any) => {
                         if (f.cornfield?.id != null && f.status != null) {
@@ -615,9 +594,11 @@ export default function MapClient() {
                                 })),
                             };
 
-                            const allFieldIds = new Set(
-                                geojson.features.map((f: any) => f.properties.id)
+                            const allFieldIds = new Set<number>(
+                                geojson.features
+                                    .map((f: any) => Number(f.properties.id))
                             );
+
 
                             renderFieldsOnMap(geojson, allFieldIds, list, true);
                         } catch (error) {
@@ -626,8 +607,7 @@ export default function MapClient() {
                     }
 
                     else if (value === 'mine') {
-                        const latestMine = getLatestFieldsPerPair(myData?.data || []);
-                        renderFieldsOnMap(allData, myFieldIds, latestMine, false);
+                        renderFieldsOnMap(allData, myFieldIds, myData?.data || [], false);
                     } else if (['healthy', 'blast', 'brown_spot', 'bacterial_leaf_blight'].includes(value)) {
                         const filteredFields = (latestAllInfoData || []).filter(
                             (f: any) => f.disease_class === value && f.cornfield?.id !== undefined
@@ -652,34 +632,6 @@ export default function MapClient() {
             });
 
         });
-
-        function createButton(text: string, onClick: () => void) {
-            const btn = L.DomUtil.create('button', '');
-            btn.type = 'button';
-            btn.innerHTML = `<span style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%">${text}</span>`;
-            Object.assign(btn.style, {
-                width: '120px',
-                backgroundColor: 'white',
-                padding: '8px 12px',
-                border: '1px solid #888',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                fontSize: '14px',
-                fontWeight: '500',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                marginBottom: '6px',
-            });
-            L.DomEvent.on(btn, 'click', e => {
-                L.DomEvent.stopPropagation(e);
-                L.DomEvent.preventDefault(e);
-                onClick();
-            });
-            return btn;
-        }
 
         // helper kiểm tra map
         function isMapReady() {
@@ -717,7 +669,7 @@ export default function MapClient() {
 
         function locateUser(promptIfNeeded = false) {
             if (!('geolocation' in navigator)) {
-                alert('Trình duyệt không hỗ trợ định vị.');
+                toast.error('Trình duyệt không hỗ trợ định vị.');
                 return;
             }
             if (!isMapReady()) return;
@@ -740,7 +692,8 @@ export default function MapClient() {
                 },
                 err => {
                     console.warn('Geolocation error:', err);
-                    if (err.code === 1 && promptIfNeeded) alert('Vui lòng bật quyền định vị cho trang này.');
+                    if (err.code === 1 && promptIfNeeded) toast.error('Vui lòng bật quyền định vị cho trang này.');
+
                 },
                 { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
             );
@@ -810,6 +763,73 @@ export default function MapClient() {
             draw: { polygon: true, polyline: false, rectangle: false, circle: false, marker: false, circlemarker: false },
         });
         map.addControl(drawControl);
+        let showApiPolygons = false;
+
+        const loadApiPolygons = async (): Promise<L.FeatureGroup | null> => {
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/`, {
+                    credentials: 'include',
+                });
+                if (!res.ok) throw new Error(`Fetch lỗi: ${res.statusText}`);
+
+                const data = await res.json();
+                const features = data.features || [];
+
+                const layerGroup = L.featureGroup();
+
+                features.forEach((f: any) => {
+                    if (!f.geometry) return;
+                    const geom = (wellknown as any).parse(f.geometry.replace(/^SRID=\d+;/, ''));
+                    if (!geom) return;
+
+                    const layer = L.geoJSON(geom, {
+                        style: {
+                            color: '#4339b6ff',
+                            weight: 2,
+                            fillOpacity: 0.3,
+                        },
+                    }).getLayers()[0];
+                    (layer as any)._cornfieldId = f.id;
+                    allFieldsLayer.addLayer(layer);
+                });
+
+                return layerGroup;
+            } catch (err) {
+                return null;
+            }
+        };
+
+        const toggleApiPolygons = async () => {
+            if (!map || !allFieldsLayerRef.current) return;
+
+            if (!showApiPolygons) {
+                const features = await loadApiPolygons();
+                if (features) {
+                    features.eachLayer((layer: any) => allFieldsLayerRef.current?.addLayer(layer));
+                }
+                showApiPolygons = true;
+            } else {
+                allFieldsLayerRef.current.clearLayers();
+                showApiPolygons = false;
+            }
+        };
+
+        const showPolygonsBtn = new L.Control({ position: 'topleft' });
+        showPolygonsBtn.onAdd = () => {
+            const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+            const btn = L.DomUtil.create('a', '', div);
+            btn.innerHTML = '👁️';
+            btn.title = 'Hiển thị polygon API';
+            btn.style.cursor = 'pointer';
+            btn.onclick = (e) => {
+                e.preventDefault();
+                toggleApiPolygons();
+            };
+            return div;
+        };
+
+        showPolygonsBtn.addTo(map);
+
 
         const handleCreated = async (e: any) => {
             try {
@@ -831,6 +851,7 @@ export default function MapClient() {
                 if (res.ok) {
                     const saved = await res.json();
                     (layer as any).id = saved.id;
+                    layer._cornfieldId = saved.id;
                     console.log('Success:', saved);
                 } else console.error('Lưu ruộng thất bại', res.statusText);
             } catch (err) {
@@ -840,7 +861,7 @@ export default function MapClient() {
 
         const handleDeleted = async (e: any) => {
             e.layers.eachLayer(async (layer: any) => {
-                const id = layer.id ?? layer.feature?.properties?.id;
+                const id = layer.id ?? layer._cornfieldId ?? layer.feature?.properties?.id;
                 if (!id) return console.warn('Không tìm thấy ID để xóa');
                 try {
                     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/${id}/`, { method: 'DELETE' });
@@ -852,7 +873,33 @@ export default function MapClient() {
             });
         };
 
+        const handleEdited = async (e: any) => {
+            e.layers.eachLayer(async (layer: any) => {
+                const id = layer.id ?? layer._cornfieldId ?? layer.feature?.properties?.id;
+                if (!id) {
+                    console.warn('Layer chưa có ID, không thể cập nhật');
+                    return;
+                }
+
+                const payload = { geom: layer.toGeoJSON().geometry };
+
+                try {
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/${id}/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+                    if (res.ok) console.log(`Cập nhật thành công id=${id}`);
+                    else console.error('Fail', res.status, res.statusText);
+                } catch (err) {
+                    console.error('Error khi edit polygon:', err);
+                }
+            });
+        };
+
+
         map.on((L as any).Draw.Event.CREATED, handleCreated);
+        map.on((L as any).Draw.Event.EDITED, handleEdited);
         map.on('draw:deleted', handleDeleted);
 
         return () => {
@@ -882,7 +929,7 @@ export default function MapClient() {
                             Thông tin ruộng
                         </h2>
 
-                        <div className="flex gap-4 bg-white shadow-md rounded-xl p-4 items-start">
+                        <div className="flex gap-4 bg-white border rounded-xl p-4 items-start">
                             {selectedField.info?.image_rel ? (
                                 <div className="flex-shrink-0 w-[120px] h-[120px] overflow-hidden rounded-lg shadow-sm">
                                     <img
@@ -899,14 +946,14 @@ export default function MapClient() {
 
                             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-800 text-[14px]">
                                 <span className="font-semibold text-gray-600">Nông dân:</span>
-                                <span className="text-[#5b8c51] font-medium">
+                                <span className="font-medium">
                                     {selectedField.info?.farmer
                                         ? `${selectedField.info.farmer.last_name ?? ''} ${selectedField.info.farmer.first_name ?? ''}`
                                         : selectedField.field?.properties?.name ?? 'Chưa có thông tin'}
                                 </span>
 
                                 <span className="font-semibold text-gray-600">Diện tích:</span>
-                                <span className="font-medium">
+                                <span className="">
                                     {Math.round(
                                         selectedField.info?.cornfield?.properties?.area_m2 ||
                                         selectedField.feature?.properties?.area_m2 ||
@@ -945,7 +992,6 @@ export default function MapClient() {
                                 </span>
                             </div>
                         </div>
-
                         <FieldMetrics info={selectedField.info} />
                         <button
                             onClick={() => setSelectedField(null)}

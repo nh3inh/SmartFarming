@@ -33,30 +33,6 @@ export default function MapComponent({ observations }: Props) {
         bacterial_leaf_blight: "#CC3366",
     };
 
-    function createMiniMapIcon(imageUrl?: string) {
-        const size = 24;
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-
-        ctx.fillStyle = '#ffffffcc';
-        ctx.fillRect(0, 0, size, size);
-
-        if (imageUrl) {
-            const img = new Image();
-            img.src = imageUrl;
-            img.onload = () => ctx.drawImage(img, 0, 0, size, size);
-        }
-
-        return L.divIcon({
-            html: `<img src="${canvas.toDataURL()}" width="${size}" height="${size}" style="border-radius:4px;border:1px solid #333" />`,
-            iconSize: [size, size],
-            className: 'mini-map-icon',
-        });
-    }
-
     useEffect(() => {
         if (!mapRef.current) {
             mapRef.current = L.map(mapId, { center: [10.7769, 106.7009], zoom: 13, zoomControl: true, dragging: true });
