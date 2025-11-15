@@ -81,6 +81,7 @@ class CornfieldInfoSerializer(serializers.ModelSerializer):
             "treatment_payload",
             "fertilizer_payload",
             "water_payload",
+            "summary_comment",
             "created_at",
             "updated_at",
         ]

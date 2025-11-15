@@ -13,7 +13,7 @@ export default function FieldMetrics({ info }: { info: any }) {
     if (!info) return null;
 
     const metrics: Metric[] = [
-        { key: "confidence", label: "Độ tin cậy", value: (info.confidence ?? 0) * 100, unit: "%", icon: <Activity className="w-5 h-5 text-green-500" /> },
+        { key: "confidence", label: "Độ tin cậy chuẩn đoán", value: (info.confidence ?? 0) * 100, unit: "%", icon: <Activity className="w-5 h-5 text-green-500" /> },
         { key: "temp", label: "Nhiệt độ", value: info.temp, unit: "°C", icon: <Thermometer className="w-5 h-5 text-orange-400" /> },
         { key: "hum", label: "Độ ẩm không khí", value: info.hum, unit: "%", icon: <Droplets className="w-5 h-5 text-blue-400" /> },
         { key: "ph", label: "Độ pH", value: info.ph, icon: <FlaskConical className="w-5 h-5 text-purple-400" /> },
@@ -46,7 +46,7 @@ export default function FieldMetrics({ info }: { info: any }) {
                     ))}
                 </div>
             </div>
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-2">
                     <h2 className="text-sm font-bold text-green-700 mt-4 px-1">
                         Gợi ý lịch trình canh tác
                     </h2>
@@ -64,7 +64,7 @@ export default function FieldMetrics({ info }: { info: any }) {
                                     <CardContent>
                                         <div className="flex items-center gap-2 mb-1">
                                             <Info className="w-5 h-5 text-blue-500" />
-                                            <h3 className="text-sm font-semibold">Cấp nước</h3>
+                                            <h3 className="text-sm font-semibold">Tưới nước</h3>
                                         </div>
                                         <p><strong>Hành động:</strong> {info.water_payload.payload.action}</p>
                                         <p><strong>Mức mục tiêu:</strong> {info.water_payload.payload.target_level}</p>

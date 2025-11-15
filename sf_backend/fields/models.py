@@ -70,6 +70,7 @@ class CornfieldInfo(models.Model):
     treatment_payload = models.JSONField(default=dict, blank=True)
     fertilizer_payload = models.JSONField(default=dict, blank=True)
     water_payload = models.JSONField(default=dict, blank=True)
+    summary_comment = models.JSONField(default=dict, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

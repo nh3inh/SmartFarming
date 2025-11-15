@@ -12,6 +12,10 @@ import WKT from 'terraformer-wkt-parser';
 import FieldMetrics from "./FieldMetrics";
 import * as wellknown from 'wellknown';
 import { toast } from 'react-hot-toast';
+import { fetchAllFields } from '@/services/cornfieldService';
+import { fetchAllUserFieldsInfo } from '@/services/cornfieldService';
+import { fetchMyFields } from '@/services/cornfieldService';
+
 
 interface SelectedField {
     feature: any;
@@ -54,6 +58,11 @@ export default function MapClient() {
     const allFieldsLayerRef = useRef<L.FeatureGroup | null>(null);
     const [selectedField, setSelectedField] = useState<any>(null);
     const [cornfields, setCornfields] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [suggestions, setSuggestions] = useState<Array<any>>([]);
+    const [farmersList, setFarmersList] = useState<Array<any>>([]);
+    const searchLayerRef = useRef<L.FeatureGroup | null>(new L.FeatureGroup());
+
     const diseaseColorMap: Record<string, string> = {
         healthy_10: "#E6FFE6",
         healthy_20: "#CCFFCC",
@@ -182,10 +191,235 @@ export default function MapClient() {
                 console.error('Lỗi tải user:', err);
             }
         })();
+        const loadFarmersList = async () => {
+            try {
+                const allInfo = await fetchAllUserFieldsInfo();
+                const allInfoData = Array.isArray(allInfo?.data)
+                    ? allInfo.data
+                    : Array.isArray(allInfo)
+                        ? allInfo
+                        : [];
+
+                const normalized = Array.from(
+                    new Map(
+                        allInfoData
+                            .map((f: any) => f.farmer)
+                            .filter((f: any) => f && f.id != null)
+                            .map((f: any) => [f.id, {
+                                id: f.id,
+                                first_name: f.first_name ?? '',
+                                last_name: f.last_name ?? '',
+                                email: f.email ?? '',
+                                displayName: `${f.last_name ?? ''} ${f.first_name ?? ''}`.trim() || 'Không tên',
+                            }])
+                    ).values()
+                );
+
+                if (mounted) {
+                    setFarmersList(normalized);
+                    console.log("🔵 farmersList đã load:", normalized);
+                }
+            } catch (err) {
+                console.error("Lỗi tải nông dân:", err);
+            }
+        };
+
+        loadFarmersList();
         return () => {
             mounted = false;
         };
     }, []);
+
+    searchLayerRef.current?.clearLayers();
+    async function handleSelectFarmerId(farmerId: number) {
+        // 1) fetch public infos (or reuse a cached copy if you have it)
+        let allInfoData: any[] = [];
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/public/`);
+            if (!res.ok) throw new Error('Fail fetch public info');
+            const payload = await res.json();
+            allInfoData = payload?.data || payload || [];
+        } catch (err) {
+            console.error('Lỗi fetch public info for search:', err);
+            return;
+        }
+
+        // 2) find records for farmerId
+        const matches = (allInfoData || []).filter((r: any) => r.farmer?.id === farmerId);
+
+        if (!matches.length) {
+            toast(`Không tìm thấy ruộng cho nông dân này.`);
+            return;
+        }
+
+        // 3) compute bounds of all cornfields of this farmer (use geometry or gps coords)
+        const layersToHighlight: any[] = [];
+        const ids = new Set<number>();
+        matches.forEach(m => {
+            const cid = m.cornfield?.id ?? m.cornfield?.properties?.id;
+            if (cid != null) ids.add(Number(cid));
+        });
+
+        // find layers in allFieldsLayerRef (đã tồn tại) by _cornfieldId
+        const layerGroup = allFieldsLayerRef.current;
+        if (layerGroup) {
+            layerGroup.eachLayer((layer: any) => {
+                const layerId = Number(layer._cornfieldId ?? layer.id ?? layer.feature?.properties?.id);
+                if (ids.has(layerId)) {
+                    layersToHighlight.push(layer);
+                }
+            });
+        }
+
+        // if no layer found in existing layerGroup, attempt to render these features (fallback)
+        if (!layersToHighlight.length) {
+            // fallback: create geojson and render (reuse renderFieldsOnMap)
+            // Build geojson from matches.cornfield.geometry if available (WKT strings)
+            try {
+                const features = (matches || []).map((m: any) => {
+                    const geom = (m.cornfield?.geometry && typeof m.cornfield.geometry === 'string')
+                        ? WKT.parse(m.cornfield.geometry.replace(/^SRID=\d+;/, ''))
+                        : (m.cornfield?.geometry || {});
+                    return {
+                        type: 'Feature',
+                        geometry: geom,
+                        properties: { id: m.cornfield?.id, name: m.cornfield?.properties?.name }
+                    };
+                });
+                const geojson = {
+                    type: 'FeatureCollection' as const,
+                    features,
+                };
+                // renderFieldsOnMap(geojson, new Set(features.map(f => f.properties.id)), matches, true);
+                // instead of calling renderFieldsOnMap (which may override other UI),
+                // add layers directly:
+                const map = mapRef.current;
+                L.geoJSON(geojson, {
+                    style: { color: '#ff9900', weight: 3, fillOpacity: 0.35 }
+                }).eachLayer((l: any) => {
+                    l.on("click", () => {
+                        const info = matches.find((m: any) =>
+                            Number(m.cornfield?.id) === Number(l.feature?.properties?.id)
+                        );
+
+                        setSelectedField({
+                            feature: l.feature,
+                            info
+                        });
+                    });
+                    l._isSearchLayer = true;
+                    l.addTo(map!);
+                    layersToHighlight.push(l);
+
+                });
+            } catch (err) {
+                console.warn('Fallback render polygons failed', err);
+            }
+        }
+        // 4) highlight: dùng đúng màu bệnh giống bộ lọc, không mở popup
+        const map = mapRef.current;
+        if (!map || !layersToHighlight.length) return;
+
+        // reset style tất cả ruộng (không đổi màu bệnh)
+        allFieldsLayerRef.current?.eachLayer((l: any) => {
+            try {
+                const originalColor = l._originalColor || "#2611dd";
+                const originalFill = l._originalFill || 0.45;
+
+                (l as L.Path).setStyle?.({
+                    color: originalColor,
+                    weight: 2,
+                    fillOpacity: originalFill
+                });
+            } catch { }
+        });
+
+        // tạo nhóm để zoom
+        const group = L.featureGroup();
+
+        layersToHighlight.forEach((l: any) => {
+            try {
+                const info = matches.find((m: any) =>
+                    Number(m.cornfield?.id) === Number(l.feature?.properties?.id)
+                );
+
+                const disease = info?.disease_class;
+                const color = disease
+                    ? diseaseColorMap[disease]
+                    : "#2611dd";
+
+                (l as any)._originalColor = color;
+                (l as any)._originalFill = 0.45;
+
+                (l as L.Path).setStyle?.({
+                    color,
+                    weight: 3,
+                    fillOpacity: 0.6
+                });
+
+                group.addLayer(l);
+            } catch (err) {
+                console.warn(err);
+            }
+        });
+
+        const searchWrapper = document.getElementById('search-box-wrapper') as HTMLElement | null;
+        if (searchWrapper) {
+            searchWrapper.style.display = 'none';
+            const searchInputDom = document.getElementById('farmer-search-input') as HTMLInputElement | null;
+            if (searchInputDom) searchInputDom.value = '';
+            const sugDiv = document.getElementById('farmer-suggestions'); if (sugDiv) sugDiv.innerHTML = '';
+        }
+    }
+
+    function normalizeText(str: string) {
+        return (str || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase();
+    }
+
+    useEffect(() => {
+        const handler = (e: any) => {
+            const val = (e?.detail?.value ?? '').trim().toLowerCase();
+            setSearchTerm(val);
+
+            if (!val) {
+                setSuggestions([]);
+                const sugDiv = document.getElementById('farmer-suggestions');
+                if (sugDiv) sugDiv.innerHTML = '';
+                return;
+            }
+
+            if (!farmersList || farmersList.length === 0) return;
+
+            const valNorm = normalizeText(val);
+            const matches = farmersList.filter(f => {
+                const n1 = normalizeText(`${f.last_name ?? ''} ${f.first_name ?? ''}`);
+                const n2 = normalizeText(`${f.first_name ?? ''} ${f.last_name ?? ''}`);
+                const email = normalizeText(f.email ?? "");
+                return n1.includes(valNorm) || n2.includes(valNorm) || email.includes(valNorm);
+            }).slice(0, 8);
+
+            setSuggestions(matches);
+
+            const sugDiv = document.getElementById('farmer-suggestions');
+            if (sugDiv) {
+                sugDiv.innerHTML = matches.map(m => `
+        <div class="farmer-suggestion-item" data-id="${m.id}" style="padding:6px;border-radius:6px;cursor:pointer;border:1px solid #eee;margin-top:4px;background:white;">
+          ${m.displayName}
+        </div>
+      `).join('');
+
+                Array.from(sugDiv.querySelectorAll('.farmer-suggestion-item')).forEach((el: any) => {
+                    el.onclick = () => handleSelectFarmerId(Number(el.getAttribute('data-id')));
+                });
+            }
+        };
+
+        window.addEventListener('farmer-search-input', handler);
+        return () => window.removeEventListener('farmer-search-input', handler);
+    }, [farmersList]);
 
     useEffect(() => {
         if (typeof window === 'undefined') return;
@@ -272,26 +506,9 @@ export default function MapClient() {
         const allFieldsLayer = new L.FeatureGroup();
         allFieldsLayer.addTo(map);
         allFieldsLayerRef.current = allFieldsLayer;
-
-        async function fetchAllFields() {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/`);
-            if (!res.ok) throw new Error(`Lỗi tải tất cả ruộng: ${res.statusText}`);
-            return await res.json();
-        }
-
-        async function fetchAllUserFieldsInfo() {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/public/`);
-            if (!res.ok) throw new Error(`Lỗi tải ruộng tất cả nông dân: ${res.statusText}`);
-            return await res.json();
-        }
-
-        async function fetchMyFields() {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}cornfields/info/my-field/`, {
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error(`Lỗi tải ruộng người dùng: ${res.statusText}`);
-            return await res.json();
-        }
+        const searchLayer = new L.FeatureGroup();
+        searchLayer.addTo(map);
+        searchLayerRef.current = searchLayer;
 
         // Hàm hiển thị ruộng lên bản đồ
         function renderFieldsOnMap(
@@ -335,6 +552,8 @@ export default function MapClient() {
                 layer.eachLayer((l: any) => {
                     l._cornfieldId = feature.properties.id;
                     l.id = feature.properties.id;
+                    (l as any)._originalColor = color;
+                    (l as any)._originalFill = fillOpacity;
                     l.on('click', () => {
                         setSelectedField({ feature, info });
                     });
@@ -495,28 +714,67 @@ export default function MapClient() {
             <option value="bacterial_leaf_blight">Cháy bìa lá</option>
         </select>
     `;
+
+            container.innerHTML = `
+  <div style="display:flex;gap:6px;align-items:center;">
+    <button id="toggle-search-btn" title="Tìm nông dân" style="
+        display:flex;align-items:center;justify-content:center;
+        width:36px;height:36px;border-radius:6px;border:1px solid #ccc;background:white;cursor:pointer;">
+        🔍
+    </button>
+    <select id="field-filter-select" style="flex:1; padding:4px;border:1px solid #aaa;border-radius:4px;font-size:13px;">
+      <option value="none">Không hiển thị ruộng</option>
+      <option value="all">Hiển thị tất cả ruộng</option>
+      <option value="mine">Ruộng của tôi</option>
+      <option value="healthy">Khỏe mạnh</option>
+      <option value="blast">Đạo ôn</option>
+      <option value="brown_spot">Đốm nâu</option>
+      <option value="bacterial_leaf_blight">Cháy bìa lá</option>
+    </select>
+  </div>
+
+  <div id="search-box-wrapper" style="margin-top:8px;display:none;position:relative;">
+    <input id="farmer-search-input" placeholder="Tìm theo họ/tên..." style="width:100%;padding:6px;border:1px solid #aaa;border-radius:6px;font-size:13px;" />
+    <div id="farmer-suggestions" style="position:relative;"></div>
+  </div>
+    `;
+
             L.DomEvent.on(container, 'click', e => L.DomEvent.stopPropagation(e));
+            // toggle search
+            const toggleBtn = container.querySelector('#toggle-search-btn');
+            const searchWrapper = container.querySelector('#search-box-wrapper') as HTMLElement;
+            const searchInput = container.querySelector('#farmer-search-input') as HTMLInputElement;
+            const suggestionsDiv = container.querySelector('#farmer-suggestions') as HTMLElement;
+
+            if (toggleBtn && searchWrapper && searchInput && suggestionsDiv) {
+                toggleBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const open = searchWrapper.style.display !== 'none';
+                    searchWrapper.style.display = open ? 'none' : 'block';
+                    if (!open) {
+                        searchInput.focus();
+                    } else {
+                        searchInput.value = '';
+                        suggestionsDiv.innerHTML = '';
+                    }
+                });
+
+                let debounceTimer: any = null;
+                searchInput.addEventListener('input', (ev: any) => {
+                    const val = ev.target.value;
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        const event = new CustomEvent('farmer-search-input', { detail: { value: val } });
+                        window.dispatchEvent(event);
+                    }, 200);
+                    console.log("✏️ User typing:", ev.target.value);
+                });
+
+            }
             return container;
         };
         filterControl.addTo(map);
-
-        // Tải ruộng từ backend
-        async function loadFields() {
-            try {
-                const allData = await fetchAllFields();
-                const allInfo = await fetchAllUserFieldsInfo();
-                const myData = await fetchMyFields();
-
-                const myFieldIds = new Set<number>(
-                    (myData?.data || [])
-                        .map((f: any) => f.cornfield?.id as number)
-                        .filter((id: number) => !!id)
-                );
-                renderFieldsOnMap(allData, myFieldIds, allInfo?.data || allInfo || []);
-            } catch (err) {
-                console.error("Lỗi tải ruộng:", err);
-            }
-        }
 
         // Lắng nghe thay đổi bộ lọc
         map.whenReady(() => {
@@ -527,6 +785,14 @@ export default function MapClient() {
             if (mineOption) mineOption.style.display = user ? 'block' : 'none';
             select.addEventListener('change', async (e: Event) => {
                 const value = (e.target as HTMLSelectElement).value;
+                searchLayerRef.current?.clearLayers();
+                if (mapRef.current) {
+                    mapRef.current?.eachLayer((layer: any) => {
+                        if (layer._isSearchLayer) {
+                            mapRef.current?.removeLayer(layer);
+                        }
+                    });
+                }
                 allFieldsLayer.clearLayers();
                 if (value === 'none') return;
 

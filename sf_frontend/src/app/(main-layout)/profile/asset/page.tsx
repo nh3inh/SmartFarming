@@ -1,5 +1,6 @@
 "use client";
 
+import { Thermometer, Droplets, Gauge, Wind, Sun, Activity, FlaskConical, Info } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/app/layout/Navbar";
@@ -7,7 +8,7 @@ import Footer from "@/app/layout/Footer";
 import { Plus, Map, Edit, Trash2 } from "lucide-react";
 import { Toaster, toast } from "react-hot-toast";
 import { Card, CardContent } from "@/components/ui/card";
-import { Info } from "lucide-react";
+
 import {
     LineChart,
     Line,
@@ -72,6 +73,7 @@ interface FieldObservation {
     status?: number;
     created_at?: string;
     updated_at?: string;
+    area_m2?: number;
 }
 
 interface FarmerFieldData {
@@ -130,6 +132,26 @@ interface RecommendationPayload {
             };
         };
     };
+    summary_comment?: {
+        disease_comparison: DiseaseComparison[];
+    }
+}
+
+interface EnvironmentalFactors {
+    env: string;
+    value: string;
+    solution: string;
+    other_factors: string;
+}
+
+interface DiseaseComparison {
+    day_ago: number;
+    observation: string;
+    conclusion: string;
+    reference_date_1?: Date;
+    reference_date_3?: Date;
+    reference_date_5?: Date;
+    environmental_factors: EnvironmentalFactors;
 }
 
 export default function AssetPage() {
@@ -155,6 +177,13 @@ export default function AssetPage() {
     const [recommendationsByField, setRecommendationsByField] = useState<Record<string, RecommendationPayload>>({});
     const [activeRecModal, setActiveRecModal] = useState<"water" | "treatment" | "fertilizer" | null>(null);
     const [modalRecData, setModalRecData] = useState<RecommendationPayload | null>(null);
+    const [activeHistoryModal, setActiveHistoryModal] = useState<number | null>(null);
+    const DISEASE_MAP: Record<string, string> = {
+        bacterial_leaf_blight: "Cháy bìa lá",
+        blast: "Đạo ôn",
+        brown_spot: "Đốm nâu",
+        healthy: "Khỏe mạnh"
+    };
 
     const handleAdd = () => {
         setFormData({});
@@ -306,7 +335,8 @@ export default function AssetPage() {
                 recMap[key] = {
                     water_payload: obs.water_payload,
                     treatment_payload: obs.treatment_payload,
-                    fertilizer_payload: obs.fertilizer_payload
+                    fertilizer_payload: obs.fertilizer_payload,
+                    summary_comment: obs.summary_comment
                 };
             });
             setRecommendationsByField(recMap);
@@ -599,53 +629,226 @@ export default function AssetPage() {
                                                         </div>
                                                     </div>
                                                 </div>
-<div className="flex flex-col gap-2">
-  <h4 className="text-sm font-semibold text-gray-700">Gợi ý lịch trình canh tác</h4>
-  
-  {(
-    recommendationsByField[key]?.water_payload?.payload ||
-    recommendationsByField[key]?.treatment_payload?.payload ||
-    recommendationsByField[key]?.fertilizer_payload?.payload
-  ) ? (
-    <div className="flex gap-2">
-      {recommendationsByField[key]?.water_payload?.payload && (
-        <button
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
-          onClick={() => { setActiveRecModal("water"); setModalRecData(recommendationsByField[key]); }}
-        >
-          <Info className="w-3 h-3" />
-          Cấp nước
-        </button>
-      )}
+                                                <div className="">
+                                                    <div className="flex flex-col gap-2">
+                                                        <h4 className="text-sm font-semibold text-gray-700">Gợi ý lịch trình canh tác</h4>
 
-      {recommendationsByField[key]?.treatment_payload?.payload && (
-        <button
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200"
-          onClick={() => { setActiveRecModal("treatment"); setModalRecData(recommendationsByField[key]); }}
-        >
-          <Info className="w-3 h-3" />
-          Phun thuốc
-        </button>
-      )}
+                                                        {(
+                                                            recommendationsByField[key]?.water_payload?.payload ||
+                                                            recommendationsByField[key]?.treatment_payload?.payload ||
+                                                            recommendationsByField[key]?.fertilizer_payload?.payload
+                                                        ) ? (
+                                                            <div className="flex gap-2">
+                                                                {recommendationsByField[key]?.water_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                                                                        onClick={() => { setActiveRecModal("water"); setModalRecData(recommendationsByField[key]); }}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        Cấp nước
+                                                                    </button>
+                                                                )}
 
-      {recommendationsByField[key]?.fertilizer_payload?.payload && (
-        <button
-          className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200"
-          onClick={() => { setActiveRecModal("fertilizer"); setModalRecData(recommendationsByField[key]); }}
-        >
-          <Info className="w-3 h-3" />
-          Bón phân
-        </button>
-      )}
-    </div>
-  ) : (
-    <p className="text-sm text-gray-500">Chưa có lịch trình canh tác thích hợp</p>
-  )}
-</div>
+                                                                {recommendationsByField[key]?.treatment_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-purple-200"
+                                                                        onClick={() => { setActiveRecModal("treatment"); setModalRecData(recommendationsByField[key]); }}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        Phun thuốc
+                                                                    </button>
+                                                                )}
+
+                                                                {recommendationsByField[key]?.fertilizer_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-green-200"
+                                                                        onClick={() => { setActiveRecModal("fertilizer"); setModalRecData(recommendationsByField[key]); }}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        Bón phân
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-sm text-gray-500">Chưa có lịch trình canh tác thích hợp</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-2">
+                                                        <h4 className="text-sm font-semibold text-gray-700 pt-2">So sánh quá trình canh tác</h4>
+
+                                                        {(
+                                                            recommendationsByField[key]?.summary_comment?.disease_comparison?.length
+                                                        ) ? (
+                                                            <div className="flex gap-2">
+                                                                {recommendationsByField[key]?.water_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
+                                                                        onClick={() => setActiveHistoryModal(1)}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        So với 1 ngày trước
+                                                                    </button>
+                                                                )}
+                                                                {recommendationsByField[key]?.water_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-100 text-purple-700 rounded-md hover:bg-blue-200"
+                                                                        onClick={() => setActiveHistoryModal(3)}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        So với 3 ngày trước
+                                                                    </button>
+                                                                )}
+                                                                {recommendationsByField[key]?.water_payload?.payload && (
+                                                                    <button
+                                                                        className="flex items-center gap-1 px-2 py-1 text-xs bg-green-100 text-green-700 rounded-md hover:bg-blue-200"
+                                                                        onClick={() => setActiveHistoryModal(5)}
+                                                                    >
+                                                                        <Info className="w-3 h-3" />
+                                                                        So với 5 ngày trước
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-sm text-gray-500">Chưa có nhận xét lịch sử canh tác</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex flex-col gap-2">
+                                                        <h4 className="text-sm font-semibold text-gray-700 pt-2">
+                                                            Thông tin ruộng mới nhất
+                                                        </h4>
+
+                                                        {(() => {
+                                                            const filteredImages = (observations || []).filter(
+                                                                obs =>
+                                                                    obs?.farmer?.id === farmerId &&
+                                                                    obs?.cornfield?.id === cornfieldId &&
+                                                                    obs?.image_rel
+                                                            );
+
+                                                            const latestInfo = (observations || [])
+                                                                .filter(
+                                                                    obs =>
+                                                                        obs?.farmer?.id === farmerId &&
+                                                                        obs?.cornfield?.id === cornfieldId
+                                                                )
+                                                                .sort(
+                                                                    (a, b) =>
+                                                                        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+                                                                )[0];
+
+                                                            if (!latestInfo)
+                                                                return (
+                                                                    <p className="text-sm text-gray-500">
+                                                                        Chưa nhận được thông tin ruộng
+                                                                    </p>
+                                                                );
+
+                                                            const area = latestInfo?.cornfield?.properties?.area_m2 ?? 0;
+                                                            const diseaseClass = latestInfo?.disease_class;
+                                                            const updatedAt = latestInfo?.updated_at || latestInfo?.created_at || latestInfo?.timestamp;
+
+                                                            // 3 thông tin tách riêng
+                                                            const summaryMetrics = [
+                                                                {
+                                                                    label: "Diện tích",
+                                                                    value: Math.round(area).toLocaleString("vi-VN") + " m²",
+                                                                },
+                                                                {
+                                                                    label: "Trạng thái",
+                                                                    value: diseaseClass ? DISEASE_MAP[diseaseClass] || diseaseClass : "Không có dữ liệu",
+                                                                },
+                                                                {
+                                                                    label: "Cập nhật",
+                                                                    value: updatedAt ? new Date(updatedAt).toLocaleString("vi-VN") : "Không có dữ liệu",
+                                                                },
+                                                            ];
+
+                                                            const metrics = [
+                                                                {
+                                                                    label: "Độ tin cậy chuẩn đoán",
+                                                                    value: (latestInfo.confidence * 100).toFixed(1) + "%",
+                                                                    icon: <Activity className="w-5 h-5 text-green-500" />
+                                                                },
+                                                                {
+                                                                    label: "Nhiệt độ",
+                                                                    value: latestInfo.temp + "°C",
+                                                                    icon: <Thermometer className="w-5 h-5 text-orange-400" />
+                                                                },
+                                                                {
+                                                                    label: "Độ ẩm không khí",
+                                                                    value: latestInfo.hum + "%",
+                                                                    icon: <Droplets className="w-5 h-5 text-blue-400" />
+                                                                },
+                                                                {
+                                                                    label: "Độ pH",
+                                                                    value: latestInfo.ph,
+                                                                    icon: <FlaskConical className="w-5 h-5 text-purple-400" />
+                                                                },
+                                                                {
+                                                                    label: "Độ ẩm đất",
+                                                                    value: latestInfo.soil + "%",
+                                                                    icon: <Droplets className="w-5 h-5 text-amber-400" />
+                                                                },
+                                                                {
+                                                                    label: "Gió hiện tại",
+                                                                    value: latestInfo.wind + " m/s",
+                                                                    icon: <Wind className="w-5 h-5 text-sky-400" />
+                                                                },
+                                                                {
+                                                                    label: "Gió trung bình",
+                                                                    value: latestInfo.wind_avg + " m/s",
+                                                                    icon: <Wind className="w-5 h-5 text-sky-300" />
+                                                                },
+                                                                {
+                                                                    label: "Ánh sáng",
+                                                                    value: latestInfo.lux + " lux",
+                                                                    icon: <Sun className="w-5 h-5 text-yellow-400" />
+                                                                },
+                                                            ];
+
+                                                            return (
+                                                                <div className="flex flex-col gap-2">
+                                                                    <div className="flex gap-4">
+                                                                        {summaryMetrics.map((m, idx) => (
+                                                                            <div key={idx} className="flex flex-col flex-1">
+                                                                                <span className="text-gray-500 text-xs">{m.label}</span>
+                                                                                <span className="font-semibold text-gray-900 text-sm">{m.value}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+
+                                                                    <div className="border border-gray-200 rounded-xl">
+                                                                        <div className="grid grid-cols-4 gap-2 p-2 px-3">
+                                                                            {metrics.map((m, idx) => (
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    className="flex gap-1 items-center rounded p-1"
+                                                                                    style={{
+                                                                                        animation: `fadeIn 0.3s ease ${idx * 0.05}s both`
+                                                                                    }}
+                                                                                >
+                                                                                    <div className="w-5 h-5 flex items-center justify-center">
+                                                                                        {m.icon}
+                                                                                    </div>
+                                                                                    <div className="flex flex-col">
+                                                                                        <span className="text-gray-500 text-xs">{m.label}</span>
+                                                                                        <span className="font-semibold text-gray-900 text-sm">{m.value}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </div>
                                                 <AnimatePresence>
                                                     {activeRecModal && modalRecData && (
                                                         <motion.div
-                                                            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+                                                            className="fixed inset-0 bg-black/10 flex items-center justify-center z-9999"
                                                             initial={{ opacity: 0 }}
                                                             animate={{ opacity: 1 }}
                                                             exit={{ opacity: 0 }}
@@ -674,7 +877,7 @@ export default function AssetPage() {
 
                                                                 <div className="space-y-4 text-gray-700">
                                                                     {activeRecModal === "water" && modalRecData.water_payload?.payload && (
-                                                                        <div className="bg-blue-50 p-4 rounded-lg">
+                                                                        <div className="bg-green-50 p-4 rounded-lg">
                                                                             <p><strong>Hành động:</strong> {modalRecData.water_payload.payload.action}</p>
                                                                             <p><strong>Mức mục tiêu:</strong> {modalRecData.water_payload.payload.target_level}</p>
                                                                             <p><strong>Thực hiện:</strong> {new Date(modalRecData.water_payload.payload.execution_time).toLocaleString()}</p>
@@ -682,7 +885,7 @@ export default function AssetPage() {
                                                                     )}
 
                                                                     {activeRecModal === "treatment" && modalRecData.treatment_payload?.payload && (
-                                                                        <div className="bg-purple-50 p-4 rounded-lg">
+                                                                        <div className="bg-green-50 p-4 rounded-lg">
                                                                             <p><strong>Thuốc:</strong> {modalRecData.treatment_payload.payload.drug_name}</p>
                                                                             <p><strong>Hoạt chất:</strong> {modalRecData.treatment_payload.payload.active_ingredient}</p>
                                                                             <p><strong>Lịch phun:</strong> {modalRecData.treatment_payload.payload.timing}</p>
@@ -710,6 +913,64 @@ export default function AssetPage() {
                                                                         </div>
                                                                     )}
                                                                 </div>
+                                                            </motion.div>
+                                                        </motion.div>
+                                                    )}
+                                                    {activeHistoryModal && modalRecData?.summary_comment?.disease_comparison && (
+                                                        <motion.div
+                                                            className="fixed inset-0 bg-black/10 flex items-center justify-center z-9999"
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            onClick={() => setActiveHistoryModal(null)}
+                                                        >
+                                                            <motion.div
+                                                                className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative overflow-y-auto max-h-[90vh]"
+                                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                                animate={{ scale: 1, opacity: 1 }}
+                                                                exit={{ scale: 0.8, opacity: 0 }}
+                                                                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                                                                onClick={(e) => e.stopPropagation()}
+                                                            >
+                                                                <button
+                                                                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 text-xl font-bold"
+                                                                    onClick={() => setActiveHistoryModal(null)}
+                                                                >
+                                                                    ✕
+                                                                </button>
+
+                                                                <h2 className="text-2xl font-bold text-[#5b8c51] mb-6 text-center">
+                                                                    So sánh bệnh – {activeHistoryModal} ngày trước
+                                                                </h2>
+
+                                                                {modalRecData.summary_comment.disease_comparison
+                                                                    .filter(dc => Number(dc.day_ago) === activeHistoryModal)
+                                                                    .map((dc, idx) => (
+                                                                        <div key={idx} className="bg-green-50 p-4 rounded-xl text-gray-700">
+
+                                                                            <p><strong>Quan sát:</strong> {dc.observation}</p>
+                                                                            <p><strong>Kết luận:</strong> {dc.conclusion}</p>
+
+                                                                            {dc.reference_date_1 && (
+                                                                                <p><strong>Ngày tham chiếu:</strong> {new Date(dc.reference_date_1).toLocaleDateString()}</p>
+                                                                            )}
+
+                                                                            {dc.reference_date_3 && (
+                                                                                <p><strong>Ngày tham chiếu:</strong> {new Date(dc.reference_date_3).toLocaleDateString()}</p>
+                                                                            )}
+
+                                                                            {dc.reference_date_5 && (
+                                                                                <p><strong>Ngày tham chiếu:</strong> {new Date(dc.reference_date_5).toLocaleDateString()}</p>
+                                                                            )}
+
+                                                                            <div className="border-t pt-3 mt-3">
+                                                                                <p><strong>Yếu tố môi trường:</strong> {dc.environmental_factors.env}</p>
+                                                                                <p><strong>Giá trị:</strong> {dc.environmental_factors.value}</p>
+                                                                                <p><strong>Giải pháp:</strong> {dc.environmental_factors.solution}</p>
+                                                                                <p><strong>Các yếu tố khác:</strong> {dc.environmental_factors.other_factors}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                    ))}
                                                             </motion.div>
                                                         </motion.div>
                                                     )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Bot, Leaf, Map, Sprout, Users } from "lucide-react";
+import { ArrowUp, Bot, Leaf, Map, Sprout, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import Navbar from "@/app/layout/Navbar";
 import Footer from "@/app/layout/Footer";
@@ -43,8 +43,7 @@ export default function HomePage() {
                         </p>
 
                         <button className="bg-white text-[#5b8c51]  font-semibold px-6 py-3 rounded-full flex items-center space-x-2 hover:bg-gray-200">
-                            <span>Liên hệ với chúng tôi</span>
-                            <ArrowRight size={18} />
+                            <span>Vì những ruộng lúa tươi tốt!</span>
                         </button>
                     </motion.div>
 
@@ -65,36 +64,32 @@ export default function HomePage() {
                 </div>
 
                 <section className="bg-white text-gray-800 py-20">
-                    <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center px-6">
+                    <div className="mx-auto grid gap-12 items-center px-6 md:px-20 max-w-7xl">
                         <motion.img
-                            src="/farm-drone.jpg"
+                            src="/farm-drone.png"
                             alt="Smart Farm Drone"
-                            initial={{ opacity: 0, x: -50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: -50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
-                            className="rounded-2xl shadow-lg"
+                            className="w-full rounded-2xl shadow-lg mx-auto transition-transform duration-300 ease-in-out hover:scale-105"
                         />
                         <motion.div
-                            initial={{ opacity: 0, x: 50 }}
-                            whileInView={{ opacity: 1, x: 0 }}
+                            initial={{ opacity: 0, y: 50 }}
+                            whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8 }}
+                            className="text-center"
                         >
-                            <h2 className="text-3xl font-bold text-[#5b8c51] mb-4">
-                                Về dự án
-                            </h2>
+                            <h2 className="text-3xl font-bold text-[#5b8c51] mb-4">Về dự án</h2>
                             <p className="text-lg leading-relaxed mb-4">
-                                Dự án <strong>Canh tác thông minh Hóc Môn</strong> ứng dụng{" "}
-                                <strong>GIS</strong> để theo dõi ruộng lúa, <strong>IoT</strong>{" "}
-                                để thu thập dữ liệu môi trường và <strong>AI</strong> để phát
-                                hiện sớm sâu bệnh.
+                                <strong>Canh tác thông minh</strong> ứng dụng <strong>GIS</strong> để theo dõi ruộng lúa, <strong>IoT</strong> để thu thập dữ liệu môi trường và <strong>AI</strong> để phát hiện sớm sâu bệnh.
                             </p>
                             <p className="text-lg">
-                                Giúp nông dân ra quyết định chính xác, tiết kiệm tài nguyên và
-                                tăng năng suất vụ mùa.
+                                Giúp nông dân ra quyết định chính xác, tiết kiệm tài nguyên và tăng năng suất vụ mùa.
                             </p>
                         </motion.div>
                     </div>
                 </section>
+
 
                 <section className="bg-gradient-to-r from-green-50 to-green-100 py-20 text-gray-800">
                     <div className="max-w-7xl mx-auto px-6 text-center">
@@ -127,7 +122,7 @@ export default function HomePage() {
                                 {
                                     icon: <Sprout size={36} />,
                                     title: "Tư vấn nông nghiệp",
-                                    desc: "Chatbot hỗ trợ người dùng 24/7 bằng tiếng Việt.",
+                                    desc: "Chatbot hỗ trợ người dùng 24/7.",
                                 },
                             ].map((f, i) => (
                                 <motion.div
