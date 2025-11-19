@@ -16,7 +16,6 @@ DISEASE_MAP = {
     "bacterial_leaf_blight": "Cháy bìa lá"
 }
 
-
 @method_decorator(csrf_exempt, name='dispatch')
 class PredictView(View):
 

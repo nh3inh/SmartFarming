@@ -93,7 +93,6 @@ def firebase_webhook(request):
 
     disease_class = "unknown"
     confidence = 0.0
-    status = 0
     try:
         ml_res = requests.post(
             "http://47.130.123.80:8000/api/ml_models/predict/",
@@ -104,7 +103,6 @@ def firebase_webhook(request):
             ml_data = ml_res.json()
             disease_class = ml_data.get("predicted_class", "unknown")
             confidence = ml_data.get("confidence", 0.0)
-            status = ml_data.get("predicted_index", 0)
         else:
             print(f"ML API returned {ml_res.status_code}: {ml_res.text}")
     except Exception as e:
@@ -199,7 +197,6 @@ def firebase_webhook(request):
         wind=env.get("wind"),
         wind_avg=env.get("wind_avg"),
         lux=env.get("lux"),
-        status=status,
     )
     
     payload = {

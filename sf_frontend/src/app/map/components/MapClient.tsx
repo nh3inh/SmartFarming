@@ -217,10 +217,8 @@ export default function MapClient() {
 
                 if (mounted) {
                     setFarmersList(normalized);
-                    console.log("🔵 farmersList đã load:", normalized);
                 }
             } catch (err) {
-                console.error("Lỗi tải nông dân:", err);
             }
         };
 
@@ -599,82 +597,75 @@ export default function MapClient() {
   `;
         }
 
-        const legend = new L.Control({ position: 'bottomleft' });
-        legend.onAdd = () => {
-            const div = L.DomUtil.create('div', 'info legend');
-            div.innerHTML = `
-                <h2 style="font-size:16px; font-weight:bold; line-height:1.5">Trạng thái ruộng</h2>
-                <div style="font-size:13px; line-height:1.5; display:flex; flex-direction:column; gap:3px;">
+        // const legend = new L.Control({ position: 'bottomleft' });
+        // legend.onAdd = () => {
+        //     const div = L.DomUtil.create('div', 'info legend');
+        //     div.innerHTML = `
+        //         <h2 style="font-size:16px; font-weight:bold; line-height:1.5">Trạng thái ruộng</h2>
+        //         <div style="font-size:13px; line-height:1.5; display:flex; flex-direction:column; gap:3px;">
 
-                <!-- Khỏe mạnh -->
-                <div style="display:flex;">
-                <i style="background:#E6FFE6;width:14px;height:14px;"></i>
-                <i style="background:#CCFFCC;width:14px;height:14px;"></i>
-                <i style="background:#B3FFB3;width:14px;height:14px;"></i>
-                <i style="background:#99FF99;width:14px;height:14px;"></i>
-                <i style="background:#80FF80;width:14px;height:14px;"></i>
-                <i style="background:#66FF66;width:14px;height:14px;"></i>
-                <i style="background:#4DFF4D;width:14px;height:14px;"></i>
-                <i style="background:#33FF33;width:14px;height:14px;"></i>
-                <i style="background:#1AFF1A;width:14px;height:14px;"></i>
-                <i style="background:#33CC00;width:14px;height:14px;"></i>
-                <span style="margin-left:5px;">Khỏe mạnh</span>
-                </div>
+        //         <!-- Khỏe mạnh -->
+        //         <div style="display:flex;">
+        //         <i style="background:#E6FFE6;width:14px;height:14px;"></i>
+        //         <i style="background:#CCFFCC;width:14px;height:14px;"></i>
+        //         <i style="background:#B3FFB3;width:14px;height:14px;"></i>
 
-                <!-- Đạo ôn -->
-                <div style="display:flex;">
-                <i style="background:#FFE6CC;width:14px;height:14px;"></i>
-                <i style="background:#FFD9B3;width:14px;height:14px;"></i>
-                <i style="background:#FFCC99;width:14px;height:14px;"></i>
-                <i style="background:#FFBF80;width:14px;height:14px;"></i>
-                <i style="background:#FFB266;width:14px;height:14px;"></i>
-                <i style="background:#FFA54D;width:14px;height:14px;"></i>
-                <i style="background:#FF9933;width:14px;height:14px;"></i>
-                <i style="background:#FF8C1A;width:14px;height:14px;"></i>
-                <i style="background:#FF8000;width:14px;height:14px;"></i>
-                <i style="background:#FF9900;width:14px;height:14px;"></i>
-                <span style="margin-left:5px;">Đạo ôn</span>
-                </div>
+        //         </div>
 
-                <!-- Đốm nâu -->
-                <div style="display:flex;">
-                <i style="background:#FFE6FF;width:14px;height:14px;"></i>
-                <i style="background:#FFCCFF;width:14px;height:14px;"></i>
-                <i style="background:#FFB3FF;width:14px;height:14px;"></i>
-                <i style="background:#FF99FF;width:14px;height:14px;"></i>
-                <i style="background:#FF80FF;width:14px;height:14px;"></i>
-                <i style="background:#FF66FF;width:14px;height:14px;"></i>
-                <i style="background:#FF33FF;width:14px;height:14px;"></i>
-                <i style="background:#FF00FF;width:14px;height:14px;"></i>
-                <i style="background:#FB00FF;width:14px;height:14px;"></i>
-                <i style="background:#FB00FF;width:14px;height:14px;"></i>
-                <span style="margin-left:5px;">Đốm nâu</span>
-                </div>
+        //         <!-- Đạo ôn -->
+        //         <div style="display:flex;">
+        //         <i style="background:#FFE6CC;width:14px;height:14px;"></i>
+        //         <i style="background:#FFD9B3;width:14px;height:14px;"></i>
+        //         <i style="background:#FFCC99;width:14px;height:14px;"></i>
+        //         <i style="background:#FFBF80;width:14px;height:14px;"></i>
+        //         <i style="background:#FFB266;width:14px;height:14px;"></i>
+        //         <i style="background:#FFA54D;width:14px;height:14px;"></i>
+        //         <i style="background:#FF9933;width:14px;height:14px;"></i>
+        //         <i style="background:#FF8C1A;width:14px;height:14px;"></i>
+        //         <i style="background:#FF8000;width:14px;height:14px;"></i>
+        //         <i style="background:#FF9900;width:14px;height:14px;"></i>
+        //         <span style="margin-left:5px;">Đạo ôn</span>
+        //         </div>
 
-                <!-- Cháy bìa lá -->
-                <div style="display:flex;">
-                <i style="background:#FFE6F0;width:14px;height:14px;"></i>
-                <i style="background:#FFCCE0;width:14px;height:14px;"></i>
-                <i style="background:#FFB3D1;width:14px;height:14px;"></i>
-                <i style="background:#FF99C1;width:14px;height:14px;"></i>
-                <i style="background:#FF80B2;width:14px;height:14px;"></i>
-                <i style="background:#FF66A3;width:14px;height:14px;"></i>
-                <i style="background:#FF4D94;width:14px;height:14px;"></i>
-                <i style="background:#FF3366;width:14px;height:14px;"></i>
-                <i style="background:#CC3366;width:14px;height:14px;"></i>
-                <i style="background:#CC3366;width:14px;height:14px;"></i>
-                <span style="margin-left:5px;">Cháy bìa lá</span>
-                </div>
-                </div>
-                `;
+        //         <!-- Đốm nâu -->
+        //         <div style="display:flex;">
+        //         <i style="background:#FFE6FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FFCCFF;width:14px;height:14px;"></i>
+        //         <i style="background:#FFB3FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FF99FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FF80FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FF66FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FF33FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FF00FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FB00FF;width:14px;height:14px;"></i>
+        //         <i style="background:#FB00FF;width:14px;height:14px;"></i>
+        //         <span style="margin-left:5px;">Đốm nâu</span>
+        //         </div>
 
-            div.style.background = '#ffffff';
-            div.style.padding = '8px 10px';
-            div.style.borderRadius = '8px';
-            div.style.color = '#000000';
-            return div;
-        };
-        legend.addTo(map);
+        //         <!-- Cháy bìa lá -->
+        //         <div style="display:flex;">
+        //         <i style="background:#FFE6F0;width:14px;height:14px;"></i>
+        //         <i style="background:#FFCCE0;width:14px;height:14px;"></i>
+        //         <i style="background:#FFB3D1;width:14px;height:14px;"></i>
+        //         <i style="background:#FF99C1;width:14px;height:14px;"></i>
+        //         <i style="background:#FF80B2;width:14px;height:14px;"></i>
+        //         <i style="background:#FF66A3;width:14px;height:14px;"></i>
+        //         <i style="background:#FF4D94;width:14px;height:14px;"></i>
+        //         <i style="background:#FF3366;width:14px;height:14px;"></i>
+        //         <i style="background:#CC3366;width:14px;height:14px;"></i>
+        //         <i style="background:#CC3366;width:14px;height:14px;"></i>
+        //         <span style="margin-left:5px;">Cháy bìa lá</span>
+        //         </div>
+        //         </div>
+        //         `;
+
+        //     div.style.background = '#ffffff';
+        //     div.style.padding = '8px 10px';
+        //     div.style.borderRadius = '8px';
+        //     div.style.color = '#000000';
+        //     return div;
+        // };
+        // legend.addTo(map);
 
         // Bộ lọc ruộng
         const filterControl = new L.Control({ position: 'topright' });
@@ -716,11 +707,16 @@ export default function MapClient() {
     `;
 
             container.innerHTML = `
+    <button id="info-btn" title="Thông tin trạng thái" style="
+    display:flex;align-items:center;justify-content:center;
+    width:full;height:30px;border-radius:4px;border:1px solid #aaa;cursor:pointer;
+    ">Ý nghĩa các màu của ruộng</button>
   <div style="display:flex;gap:6px;align-items:center;">
-    <button id="toggle-search-btn" title="Tìm nông dân" style="
+  
+    <button id="toggle-search-btn" title="Tìm nông dân theo tên" style="
         display:flex;align-items:center;justify-content:center;
-        width:36px;height:36px;border-radius:6px;border:1px solid #ccc;background:white;cursor:pointer;">
-        🔍
+        width:36px;height:30px;border-radius:4px;border:1px solid #aaa;cursor:pointer;">
+        Tên
     </button>
     <select id="field-filter-select" style="flex:1; padding:4px;border:1px solid #aaa;border-radius:4px;font-size:13px;">
       <option value="none">Không hiển thị ruộng</option>
@@ -737,10 +733,201 @@ export default function MapClient() {
     <input id="farmer-search-input" placeholder="Tìm theo họ/tên..." style="width:100%;padding:6px;border:1px solid #aaa;border-radius:6px;font-size:13px;" />
     <div id="farmer-suggestions" style="position:relative;"></div>
   </div>
+  <div id="date-filter-wrapper" style="margin-top:8px;">
+  <label style="font-size:12px;">Lọc theo ngày:</label>
+  <input type="date" id="date-filter-start" style="width:100%;padding:6px;border:1px solid #aaa;border-radius:6px;font-size:13px;margin-top:4px;" />
+
+  <label style="font-size:12px;margin-top:6px;">Đến ngày:</label>
+  <input type="date" id="date-filter-end" style="width:100%;padding:6px;border:1px solid #aaa;border-radius:6px;font-size:13px;margin-top:4px;" />
+
+  <button id="apply-date-filter" style="
+      margin-top:8px;width:100%;padding:6px;
+      border:1px solid #4caf50;border-radius:6px;
+      background:#4caf50;color:white;cursor:pointer;
+  ">
+    Áp dụng lọc ngày
+  </button>
+  <div id="info-popup" style="
+    display:none;
+    position:absolute;
+    top:42px;
+    right:0;
+    background:white;
+    border:1px solid #ccc;
+    border-radius:8px;
+    padding:12px;
+    width:320px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+    font-size:13px;
+    z-index:9999;
+">
+        <button id="info-close-btn" style="
+            background:none;
+            border:none;
+            font-size:16px;
+            cursor:pointer;
+            color:#555;
+            float: right;
+        ">X</button>
+
+    <div style="font-size:13px; line-height:1.5; display:flex; flex-direction:column; gap:10px;">
+
+    <div style="display:flex; align-items:center; gap:8px;">
+        <div style="
+            width:18px;
+            height:18px;
+            background:#33CC00;
+            flex-shrink:0;
+        "></div>
+        <span>Khỏe mạnh</span>
+    </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#66E000;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (có nguy cơ đạo ôn)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#80E61A;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (có nguy cơ đốm nâu)</span>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#99EC33;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (có nguy cơ cháy bìa lá)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#B2F24D;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (nguy cơ cao đạo ôn)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#CBF866;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (nguy cơ cao đốm nâu)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#99FF99;
+                flex-shrink:0;
+            "></div>
+            <span>Khỏe mạnh (nguy cơ cao cháy bìa lá)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#FFCC99;
+                flex-shrink:0;
+            "></div>
+            <span>Đạo ôn</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#FF9900;
+                flex-shrink:0;
+            "></div>
+            <span>Đạo ôn (khẩn cấp)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#FFB3FF;
+                flex-shrink:0;
+            "></div>
+            <span>Đốm nâu</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#FB00FF;
+                flex-shrink:0;
+            "></div>
+            <span>Đốm nâu (khẩn cấp)</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#FFB3D1;
+                flex-shrink:0;
+            "></div>
+            <span>Cháy bìa lá</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+            <div style="
+                width:18px;
+                height:18px;
+                background:#CC3366;
+                flex-shrink:0;
+            "></div>
+            <span>Cháy bìa lá (khẩn cấp)</span>
+        </div>
+
+    </div>
+</div>
+</div>
+</div>
+
     `;
+            const dateStart = container.querySelector('#date-filter-start') as HTMLInputElement | null;
+            const dateEnd = container.querySelector('#date-filter-end') as HTMLInputElement | null;
+
+            const dateBtn = container.querySelector('#apply-date-filter') as HTMLButtonElement | null;
+
+            if (dateBtn && dateStart && dateEnd) {
+                dateBtn.addEventListener('click', () => {
+                    const start = dateStart.value ? new Date(dateStart.value) : null;
+                    const end = dateEnd.value ? new Date(dateEnd.value) : null;
+
+                    if (!start && !end) {
+                        toast.error("Vui lòng chọn ít nhất 1 ngày!");
+                        return;
+                    }
+
+                    applyDateFilter(start, end);
+                });
+            }
 
             L.DomEvent.on(container, 'click', e => L.DomEvent.stopPropagation(e));
-            // toggle search
             const toggleBtn = container.querySelector('#toggle-search-btn');
             const searchWrapper = container.querySelector('#search-box-wrapper') as HTMLElement;
             const searchInput = container.querySelector('#farmer-search-input') as HTMLInputElement;
@@ -768,10 +955,63 @@ export default function MapClient() {
                         const event = new CustomEvent('farmer-search-input', { detail: { value: val } });
                         window.dispatchEvent(event);
                     }, 200);
-                    console.log("✏️ User typing:", ev.target.value);
                 });
+                const dateStart = container.querySelector('#date-filter-start') as HTMLInputElement | null;
+                const dateEnd = container.querySelector('#date-filter-end') as HTMLInputElement | null;
+                const dateBtn = container.querySelector('#apply-date-filter') as HTMLButtonElement | null;
+
+                if (dateBtn) {
+                    dateBtn.addEventListener('click', () => {
+
+                        if (!dateStart || !dateEnd) {
+                            console.error("Date inputs not found");
+                            return;
+                        }
+
+                        const start = dateStart.value ? new Date(dateStart.value) : null;
+                        const end = dateEnd.value ? new Date(dateEnd.value) : null;
+
+                        if (!start && !end) {
+                            toast.error("Vui lòng chọn ít nhất 1 ngày!");
+                            return;
+                        }
+
+                        applyDateFilter(start, end);
+                    });
+                }
+
 
             }
+            const infoBtn = container.querySelector('#info-btn') as HTMLElement | null;
+            const infoPopup = container.querySelector('#info-popup') as HTMLElement | null;
+            const infoCloseBtn = container.querySelector('#info-close-btn') as HTMLElement | null;
+
+            if (infoBtn && infoPopup) {
+                infoBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const isOpen = infoPopup.style.display !== 'none';
+                    infoPopup.style.display = isOpen ? 'none' : 'block';
+                });
+
+                if (infoCloseBtn) {
+                    infoCloseBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        infoPopup.style.display = 'none';
+                    });
+                }
+
+                document.addEventListener('click', () => {
+                    infoPopup.style.display = 'none';
+                });
+
+                infoPopup.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                });
+            }
+
             return container;
         };
         filterControl.addTo(map);
@@ -903,8 +1143,53 @@ export default function MapClient() {
         function isMapReady() {
             return !!(mapRef.current && mapRef.current.getContainer()?.isConnected);
         }
+        async function applyDateFilter(start: Date | null, end: Date | null) {
+            const map = mapRef.current;
+            const allFieldsLayer = allFieldsLayerRef.current;
+            if (!map || !allFieldsLayer) return;
 
-        // Định vị người dùng
+            allFieldsLayer.clearLayers();
+
+            const [allData, allInfo] = await Promise.all([
+                fetchAllFields(),
+                fetchAllUserFieldsInfo(),
+            ]);
+
+            const infoList = Array.isArray(allInfo?.data) ? allInfo.data : allInfo;
+
+            const matched = infoList.filter((f: any) => {
+                const dt = new Date(f.updated_at || f.created_at);
+                if (isNaN(dt.getTime())) return false;
+
+                if (start && dt < start) return false;
+                if (end && dt > end) return false;
+
+                return true;
+            });
+
+            if (!matched.length) {
+                toast("Không có ruộng nào trong khoảng ngày này.");
+                return;
+            }
+
+            const ids = new Set<number>(
+                matched
+                    .map((m: any) => Number(m.cornfield?.id))
+                    .filter((id: number) => !isNaN(id))
+            );
+            const filteredFeatures = (allData.features || []).filter((f: any) => {
+                const id = Number(f.id ?? f.properties?.id);
+                return ids.has(id);
+            });
+
+            const filteredGeoJSON = {
+                ...allData,
+                features: filteredFeatures,
+            };
+
+            renderFieldsOnMap(filteredGeoJSON, ids, matched, false);
+        }
+
         async function checkGeolocationPermission(): Promise<'granted' | 'prompt' | 'denied' | 'unknown'> {
             if (!('permissions' in navigator)) return 'unknown';
             try {

@@ -185,6 +185,69 @@ export default function AssetPage() {
         healthy: "Khỏe mạnh"
     };
 
+    const refreshMyFieldData = async () => {
+        const res = await fetch(`${API_BASE}cornfields/info/my-field/`, {
+            credentials: "include",
+        });
+
+        if (!res.ok) return;
+
+        const json = await res.json();
+
+        setObservation(json.data || []);
+        setObservationImages(json.data || []);
+        setObservations(json.data || []);
+
+        const recMap: Record<string, RecommendationPayload> = {};
+        (json.data || []).forEach((obs: any) => {
+            const key = `${obs.farmer.id}-${obs.cornfield.id}`;
+            recMap[key] = {
+                water_payload: obs.water_payload,
+                treatment_payload: obs.treatment_payload,
+                fertilizer_payload: obs.fertilizer_payload,
+                summary_comment: obs.summary_comment
+            };
+        });
+        setRecommendationsByField(recMap);
+    };
+
+    const handleAnalyzeNewImage = async (farmerId: number, cornfieldId: number) => {
+        const input = document.createElement("input");
+        input.type = "file";
+        input.accept = "image/*";
+
+        input.onchange = async () => {
+            if (!input.files?.length) return;
+
+            const file = input.files[0];
+            const form = new FormData();
+            form.append("farmer_id", farmerId.toString());
+            form.append("cornfield_id", cornfieldId.toString());
+            form.append("image", file);
+
+            toast.loading("Đang phân tích...");
+
+            const res = await fetch(`${API_BASE}cornfields/info/analyze-image/`, {
+                method: "POST",
+                body: form,
+                credentials: "include",
+            });
+
+            toast.dismiss();
+
+            if (!res.ok) {
+                toast.error("Phân tích thất bại");
+                return;
+            }
+
+            toast.success("Đã cập nhật dữ liệu!");
+
+            await refreshMyFieldData();
+        };
+
+        input.click();
+    };
+
     const handleAdd = () => {
         setFormData({});
         setShowForm(true);
@@ -578,7 +641,7 @@ export default function AssetPage() {
                                                         <h2 className="text-lg font-medium text-[#5b8c51] mb-4 text-center">
                                                             Số liệu đo trong ngày
                                                         </h2>
-                                                        <ResponsiveContainer width="100%" height={300}>
+                                                        <ResponsiveContainer width="100%" height={350}>
                                                             <LineChart data={hourlyData}>
                                                                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="5 5" />
                                                                 <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
@@ -616,6 +679,7 @@ export default function AssetPage() {
                                                         </div>
 
                                                         <div className="mt-2 text-sm text-gray-600 space-y-2">
+                                                            <br />
                                                             <h3 className="text-[#5b8c51] font-semibold mb-2">Chú thích biểu đồ</h3>
                                                             <ul className="space-y-1 text-xs">
                                                                 <li><span className="inline-block w-3 h-3 bg-[#facc15] rounded-sm mr-2"></span> Nhiệt độ (°C)</li>
@@ -718,6 +782,12 @@ export default function AssetPage() {
                                                         <h4 className="text-sm font-semibold text-gray-700 pt-2">
                                                             Thông tin ruộng mới nhất
                                                         </h4>
+                                                        <button
+                                                            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm font-bold"
+                                                            onClick={() => handleAnalyzeNewImage(farmerId, cornfieldId)}
+                                                        >
+                                                            Phân tích hình ảnh mới
+                                                        </button>
 
                                                         {(() => {
                                                             const filteredImages = (observations || []).filter(

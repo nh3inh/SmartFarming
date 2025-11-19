@@ -1,7 +1,7 @@
 from django.urls import path
 from rest_framework.urlpatterns import format_suffix_patterns
 from .views import FarmerViewSet, CornfieldViewSet, CornfieldInfoViewSet
-from . import views_firebase
+from . import views_firebase, views_analyze
 
 farmer_list = FarmerViewSet.as_view({'get': 'list'})
 farmer_detail = FarmerViewSet.as_view({'get': 'retrieve'})
@@ -43,6 +43,7 @@ urlpatterns = [
     
     # Firebase webhook
     path('firebase-webhook/', views_firebase.firebase_webhook, name='firebase_webhook'),
+    path('info/analyze-image/', views_analyze.analyze_image, name="analyze_image"),
     
     # SSE subscribe
     path('sse/subscribe/', views_firebase.sse_subscribe, name='sse_subscribe'),
