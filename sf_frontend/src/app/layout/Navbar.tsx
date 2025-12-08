@@ -57,7 +57,7 @@ export default function Navbar({ className }: NavbarProps) {
                             height={60}
                             className="rounded"
                         />
-                        <span className="hidden lg:inline">Canh tác thông minh</span>
+                        <span className="hidden lg:inline">TL Rice</span>
                     </Link>
                 </div>
 
@@ -71,7 +71,7 @@ export default function Navbar({ className }: NavbarProps) {
                             <li key={item.href}>
                                 <Link
                                     href={item.href}
-                                    className={`px-3 py-1 rounded-full transition-colors duration-200
+                                    className={`px-3 py-1 rounded-full transition-colors duration-200 text-lg
                                         ${isActive
                                             ? "text-yellow-400"
                                             : "hover:text-[#5b8c51] "

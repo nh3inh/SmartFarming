@@ -40,7 +40,7 @@ export default function BlogPage() {
     async function fetchBlogs() {
       setLoading(true);
       try {
-        const url = `http://localhost:8000/api/blog/list_blog/?page=${page}`;
+        const url = `https://tlrice.space/api/blog/list_blog/?page=${page}`;
 
         const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch blogs");

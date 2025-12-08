@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Canh tác thông minh",
-  description: "Smart Farming - Canh tác thông minh",
+  title: "TL Rice",
+  description: "Bạn của nhà nông",
   icons: {
     icon: "/logo.png"
   }

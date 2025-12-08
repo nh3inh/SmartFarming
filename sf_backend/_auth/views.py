@@ -31,7 +31,7 @@ class LogoutUser(APIView):
 class RefreshToken(APIView):
     def post(self,request,*args, **kwargs):
         samesite_value = 'Lax'
-        domain_value = 'localhost'
+        domain_value = 'tlrice.space'
         # auth_header = request.headers.get("Authorization")
         token = request.COOKIES.get("refresh_token")
         if not token:
@@ -111,7 +111,7 @@ class GoogleCallback(APIView):
     def get(self, request):
         code = request.GET.get("code")
         if not code:
-            return redirect(f"http://localhost:3000/login?error=no_code")
+            return redirect(f"https://tlrice.space/login?error=no_code")
 
         token_url = "https://oauth2.googleapis.com/token"
         data = {
@@ -126,13 +126,13 @@ class GoogleCallback(APIView):
         token_data = r.json()
         access_token = token_data.get("access_token")
         if not access_token:
-            return redirect(f"http://localhost:3000/login?error=no_token")
+            return redirect(f"https://tlrice.space/login?error=no_token")
 
         result = service.login_google(access_token)
         if not result.get("success"):
-            return redirect(f"http://localhost:3000/login?error=login_failed")
+            return redirect(f"https://tlrice.space/login?error=login_failed")
 
         response = service.create_cookie(result["access_token"], result["refresh_token"])
-        response['Location'] = f"http://localhost:3000/home"
+        response['Location'] = f"https://tlrice.space/home"
         response.status_code = 302
         return response

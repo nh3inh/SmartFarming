@@ -95,7 +95,7 @@ def firebase_webhook(request):
     confidence = 0.0
     try:
         ml_res = requests.post(
-            "http://47.130.123.80:8000/api/ml_models/predict/",
+            "https://tlrice.space/api/ml_models/predict/",
             files={"image": requests.get(s3_image_url, stream=True).raw},
             timeout=20,
         )
@@ -110,7 +110,7 @@ def firebase_webhook(request):
 
     farmer_id = None
     try:
-        obs_res = requests.get("http://47.130.123.80:8000/api/observation/farmer-fields/public/", timeout=10)
+        obs_res = requests.get("https://tlrice.space/api/observation/farmer-fields/public/", timeout=10)
         if obs_res.status_code == 200:
             for field in obs_res.json():
                 if field.get("iot_device_id") == device_id:
@@ -123,7 +123,7 @@ def firebase_webhook(request):
     ms = 0.0
     if gps_lat is not None and gps_lon is not None:
         try:
-            corn_res = requests.get("http://47.130.123.80:8000/api/cornfields/", timeout=10)
+            corn_res = requests.get("https://tlrice.space/api/cornfields/", timeout=10)
             if corn_res.status_code == 200:
                 corn_json = corn_res.json()
                 if isinstance(corn_json, dict) and "features" in corn_json:

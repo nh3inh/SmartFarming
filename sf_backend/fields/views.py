@@ -25,7 +25,7 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='my-fields')
     def my_fields(self, request):
         try:
-            profile_url = f"http://localhost:8000/api/profile/"
+            profile_url = f"https://tlrice.space/api/profile/"
             cookies = request.COOKIES
             res = requests.get(profile_url, cookies=cookies, timeout=5)
         except Exception as e:
@@ -57,7 +57,7 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
         API trả về bản ghi mới nhất cho mỗi cặp (farmer_id, cornfield_id)
         """
         try:
-            profile_url = f"http://localhost:8000/api/profile/"
+            profile_url = f"https://tlrice.space/api/profile/"
             cookies = request.COOKIES
             res = requests.get(profile_url, cookies=cookies, timeout=5)
         except Exception as e:

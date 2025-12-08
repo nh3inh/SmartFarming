@@ -1,4 +1,4 @@
-# SmartFarming - Canh tác thông minh 
+# SmartFarming - TL Rice
 
 # Tổng quan kiến trúc
 

@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import wellknown from 'wellknown';
 import { useId } from 'react';
-import { MapPin } from 'lucide-react'; // Icon từ lucide-react
+import { MapPin } from 'lucide-react';
 
 interface FieldObservation {
     cornfield: {

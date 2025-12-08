@@ -54,7 +54,7 @@ export default function Footer({ className }: FooterProps) {
 
                 <div className="text-sm text-gray-700">
                     <h4 className="font-semibold mb-4">Địa chỉ</h4>
-                    <p>47/8 đường số 9, khu phố 5, phường An Hội Đông</p>
+                    <p>Số 5A Nguyễn Văn Lượng, phường An Hội Đông</p>
                     <p>Thành phố Hồ Chí Minh</p>
                 </div>
             </div>
@@ -64,7 +64,7 @@ export default function Footer({ className }: FooterProps) {
                     <a href="/terms-and-conditions" className="hover:text-[#5b8c51] ">Điều khoản & Điều kiện</a>
                     <a href="/privacy-policy" className="hover:text-[#5b8c51] ">Chính sách bảo mật</a>
                 </div>
-                <p>© Bản quyền 2025 - SmartFarming (Canh tác thông minh)</p>
+                <p>© Bản quyền 2025 - TL Rice</p>
             </div>
         </footer>
     );

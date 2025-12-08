@@ -9,28 +9,28 @@ export interface ChatMessage {
     sender: "user" | "ai";
     content: string;
     id?: string;
+    fullText?: string;
+    startedAt?: number;
+    durationMs?: number;
+    completed?: boolean;
+    onComplete?: () => void;
 }
 
 interface AIChatPopupProps {
     onClose: () => void;
     messages: ChatMessage[];
     setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
+    startSimulateTyping: (text: string) => void;
 }
 
 const SUGGESTIONS = [
-    "Cho tui lịch trình canh tác",
-    "Hướng dẫn bón phân",
-    "Cách xử lý sâu bệnh",
-    "Tư vấn giống phù hợp",
-    "Dự báo thời tiết hôm nay",
-    "Cách cải tạo đất",
-    "Thời điểm gieo sạ tốt nhất",
-    "Cách tưới nước hợp lý",
-    "Hướng dẫn xử lý cỏ dại",
-    "Cho tui lịch phun thuốc"
+    "Tư vấn lịch trình canh tác",
+    "Tư vấn thời tiết, điều kiện môi trường ruộng lúa của tôi",
+    "Đề xuất phân bón cho ruộng lúa của tôi",
+    "Đề xuất liệu trình chữa bệnh cho ruộng",
 ];
 
-export default function AIChatPopup({ onClose, messages, setMessages }: AIChatPopupProps) {
+export default function AIChatPopup({ onClose, messages, setMessages, startSimulateTyping }: AIChatPopupProps) {
     const [message, setMessage] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [showScrollDown, setShowScrollDown] = useState(false);
@@ -92,27 +92,34 @@ export default function AIChatPopup({ onClose, messages, setMessages }: AIChatPo
 
         return text;
     };
-    const simulateTyping = (text: string) =>
-        new Promise<void>((resolve) => {
-            setIsTyping(true);
-            let index = 0;
-            const msgId = Math.random().toString(36).substr(2, 9);
-            setMessages((prev) => [...prev, { sender: "ai", content: "", id: msgId }]);
-            const chunkSize = 3;
-            const speed = Math.max(10, 400 / text.length);
 
-            const interval = setInterval(() => {
-                index += chunkSize;
-                setMessages((prev) =>
-                    prev.map((m) => (m.id === msgId ? { ...m, content: text.slice(0, index) } : m))
-                );
-                if (index >= text.length) {
-                    clearInterval(interval);
-                    setIsTyping(false);
-                    resolve();
-                }
-            }, speed);
-        });
+    const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
+    const startTypingSequentially = async (texts: string[]) => {
+        for (const text of texts) {
+            await new Promise<void>((resolve) => {
+                const id = Math.random().toString(36).substr(2, 9);
+                const duration = Math.max(600, text.length * 25);
+
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        id,
+                        sender: "ai",
+                        content: "",
+                        fullText: text,
+                        startedAt: Date.now(),
+                        durationMs: duration,
+                        completed: false,
+                        onComplete: resolve
+                    }
+                ]);
+            });
+
+            await delay(300);
+        }
+    };
+
 
     const handleSubmit = async (input?: React.FormEvent | string) => {
         let msg = "";
@@ -144,7 +151,7 @@ export default function AIChatPopup({ onClose, messages, setMessages }: AIChatPo
         }, 0);
 
         try {
-            const res = await fetch("http://localhost:8000/api/ai/consultation/", {
+            const res = await fetch("https://tlrice.space/api/ai/consultation/", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: msg }),
@@ -154,20 +161,27 @@ export default function AIChatPopup({ onClose, messages, setMessages }: AIChatPo
             setIsShowing(false);
 
             if (data.success) {
-                if (data.summary) await simulateTyping((data.summary));
+                if (data.summary) startSimulateTyping((data.summary));
                 else if (data.results) {
-                    for (const result of data.results) {
-                        await simulateTyping(`${result.field_name}:\n${(result.ai_reply)}`);
+                    if (data.results && data.results.length > 0) {
+                        const texts = data.results.map((r: { field_name: string; ai_reply: string }) =>
+                            `${r.field_name}:\n${r.ai_reply}`
+                        );
+                        startTypingSequentially(texts);
+                    } else if (data.summary) {
+                        startSimulateTyping(data.summary);
+                    } else if (data.ai_reply) {
+                        startSimulateTyping(data.ai_reply);
                     }
                 } else if (data.ai_reply) {
-                    await simulateTyping((data.ai_reply));
+                    startSimulateTyping((data.ai_reply));
                 }
             } else {
-                await simulateTyping("Vui lòng đăng nhập để sử dụng chức năng này nhé 😅");
+                startSimulateTyping("Vui lòng đăng nhập để sử dụng chức năng này nhé 😅");
             }
         } catch {
             setIsShowing(false);
-            await simulateTyping("Không kết nối được server 😢");
+            startSimulateTyping("Không kết nối được server 😢");
         }
     };
 

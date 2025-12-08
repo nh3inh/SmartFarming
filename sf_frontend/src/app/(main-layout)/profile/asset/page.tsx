@@ -539,7 +539,7 @@ export default function AssetPage() {
                     )}
                     <AnimatePresence>
                         {showForm && (
-                            <motion.div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-50"
+                            <motion.div className="fixed inset-0 bg-white/20 backdrop-blur-sm flex items-center justify-center z-1000"
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             >
                                 <motion.div className="bg-white p-8 rounded-3xl w-full max-w-3xl shadow-2xl"

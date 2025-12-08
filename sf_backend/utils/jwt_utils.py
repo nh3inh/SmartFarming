@@ -80,7 +80,7 @@ def create_refresh_token(user_id,role):
 
 def create_cookie(access_token,refresh_token):
     samesite_value = 'Lax'  
-    domain_value = 'localhost'
+    domain_value = 'tlrice.space'
     response = HttpResponse()
     
     if isinstance(access_token, bytes):

@@ -10,7 +10,7 @@ export interface UserData {
 
 export const getUserProfile = async (): Promise<UserData | null> => {
     try {
-        const res: AxiosResponse<UserData> = await axios.get("http://localhost:8000/api/profile/", {
+        const res: AxiosResponse<UserData> = await axios.get("https://tlrice.space/api/profile/", {
             withCredentials: true
         });
 
@@ -26,7 +26,7 @@ export const getUserProfile = async (): Promise<UserData | null> => {
 
 export const logoutUser = async (): Promise<boolean> => {
     try {
-        const res: AxiosResponse = await axios.post("http://localhost:8000/api/auth/logout/",
+        const res: AxiosResponse = await axios.post("https://tlrice.space/api/auth/logout/",
             {},
             { withCredentials: true }
         );

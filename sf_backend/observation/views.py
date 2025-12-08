@@ -6,7 +6,7 @@ from .models import FarmerField
 from .serializers import FarmerFieldSerializer
 from rest_framework.exceptions import PermissionDenied
 
-PROFILE_API_URL = "http://localhost:8000/api/profile/"
+PROFILE_API_URL = "https://tlrice.space/api/profile/"
 
 
 class FarmerFieldListCreateAPIView(generics.ListCreateAPIView):

@@ -3,7 +3,14 @@ from rest_framework.response import Response
 from django.conf import settings
 import requests
 from .services.weather_service import get_weather
-from .services.ai_service import generate_ai_consultation, is_agriculture_question, client
+from .services.ai_service import (
+    client,
+    generate_ai_consultation,
+    generate_disease_advice,
+    generate_environment_advice,
+    generate_fertilizer_advice,
+    classify_agriculture_question,
+)
 
 class AIChatView(APIView):
     def get_profile(self, request):
@@ -12,7 +19,7 @@ class AIChatView(APIView):
             return profile_data
 
         try:
-            profile_url = f"http://localhost:8000/api/profile/"
+            profile_url = f"https://tlrice.space/api/profile/"
             res = requests.get(profile_url, cookies=request.COOKIES, timeout=5)
             res.raise_for_status()
             profile_data = res.json()
@@ -31,34 +38,49 @@ class AIChatView(APIView):
         profile_data = self.get_profile(request)
         if not profile_data.get("success"):
             request.session.pop("profile_data", None)
-            return Response({"error": profile_data.get("error", "Không lấy được profile")}, status=401)
+            return Response(
+                {"error": profile_data.get("error", "Không lấy được profile")},
+                status=401,
+            )
 
         farmer_id = profile_data.get("id")
         if not farmer_id:
             return Response({"error": "Invalid profile data"}, status=401)
 
-        if "bao nhiêu ruộng" in user_message.lower() or "tên ruộng" in user_message.lower():
+        if (
+            "bao nhiêu ruộng" in user_message.lower()
+            or "tên ruộng" in user_message.lower()
+        ):
             latest_url = f"{settings.INTERNAL_API_BASE}/api/observation/farmer-fields/"
             try:
-                latest_resp = requests.get(latest_url, cookies=request.COOKIES, timeout=10)
+                latest_resp = requests.get(
+                    latest_url, cookies=request.COOKIES, timeout=10
+                )
                 latest_resp.raise_for_status()
                 latest_data = latest_resp.json()
             except requests.RequestException as e:
                 return Response({"error": f"Lỗi API nội bộ: {e}"}, status=500)
 
             cornfields = [
-                f["name"]
-                for f in latest_data
-                if f.get("farmer") == farmer_id
+                f["name"] for f in latest_data if f.get("farmer") == farmer_id
             ]
-                        
-            return Response({
-                "success": True,
-                "summary": f"Bạn có {len(cornfields)} ruộng: {', '.join(cornfields)}"
-            })
 
+            if not cornfields:
+                return Response(
+                    {"success": False, "error": "Bạn hiện chưa có ruộng nào."},
+                    status=200,
+                )
 
-        if is_agriculture_question(user_message):
+            return Response(
+                {
+                    "success": True,
+                    "summary": f"Bạn có {len(cornfields)} ruộng: {', '.join(cornfields)}",
+                }
+            )
+
+        category = classify_agriculture_question(user_message)
+
+        if category:
             obs_url = f"{settings.INTERNAL_API_BASE}/api/observation/farmer-fields/"
             latest_url = f"{settings.INTERNAL_API_BASE}/api/cornfields/info/my-field/"
 
@@ -67,7 +89,9 @@ class AIChatView(APIView):
                 obs_resp.raise_for_status()
                 obs_data = obs_resp.json()
 
-                latest_resp = requests.get(latest_url, cookies=request.COOKIES, timeout=10)
+                latest_resp = requests.get(
+                    latest_url, cookies=request.COOKIES, timeout=10
+                )
                 latest_resp.raise_for_status()
                 latest_data = latest_resp.json()
             except requests.RequestException as e:
@@ -77,29 +101,64 @@ class AIChatView(APIView):
             for field in obs_data:
                 if field["farmer"] != farmer_id:
                     continue
+
                 cornfield_id = field["cornfield"]
 
                 latest_info = next(
-                    (i for i in latest_data.get("data", [])
-                     if i["farmer"]["id"] == farmer_id and i["cornfield"]["id"] == cornfield_id),
-                    None
+                    (
+                        i
+                        for i in latest_data.get("data", [])
+                        if i["farmer"]["id"] == farmer_id
+                        and i["cornfield"]["id"] == cornfield_id
+                    ),
+                    None,
                 )
                 if not latest_info:
                     continue
 
-                weather_data = get_weather(latest_info.get("gps_lat"), latest_info.get("gps_lon"))
+                weather_data = get_weather(
+                    latest_info.get("gps_lat"), latest_info.get("gps_lon")
+                )
                 if not weather_data:
                     continue
 
-                ai_reply = generate_ai_consultation(field, latest_info, weather_data, user_message)
-                responses.append({
-                    "cornfield_id": cornfield_id,
-                    "field_name": field["name"],
-                    "ai_reply": ai_reply
-                })
+                if category == "disease":
+                    ai_reply = generate_disease_advice(
+                        field, latest_info, weather_data, user_message
+                    )
 
+                elif category == "environment":
+                    ai_reply = generate_environment_advice(
+                        field, latest_info, weather_data, user_message
+                    )
+
+                elif category == "fertilizer":
+                    ai_reply = generate_fertilizer_advice(
+                        field, latest_info, weather_data, user_message
+                    )
+
+                elif category == "action_plan":
+                    ai_reply = generate_ai_consultation(
+                        field, latest_info, weather_data, user_message
+                    )
+
+                else:
+                    ai_reply = generate_ai_consultation(
+                        field, latest_info, weather_data, user_message
+                    )
+
+                responses.append(
+                    {
+                        "cornfield_id": cornfield_id,
+                        "field_name": field["name"],
+                        "ai_reply": ai_reply,
+                    }
+                )
+                
             if not responses:
-                return Response({"error": "Không tìm thấy dữ liệu ruộng/bệnh"}, status=404)
+                return Response(
+                    {"success": False, "error": "Bạn hiện chưa có dữ liệu ruộng/bệnh."}, status=200
+                )
 
             return Response({"success": True, "results": responses})
 
@@ -108,10 +167,13 @@ class AIChatView(APIView):
                 response = client.chat.completions.create(
                     model="gpt-4o-mini",
                     messages=[
-                        {"role": "system", "content": "Bạn là Bác sĩ lúa, trả lời bằng tiếng Việt. Có thể dùng hoặc không dùng icon."},
-                        {"role": "user", "content": user_message}
+                        {
+                            "role": "system",
+                            "content": "Bạn là Bác sĩ lúa, trả lời bằng tiếng Việt.",
+                        },
+                        {"role": "user", "content": user_message},
                     ],
-                    temperature=0.7
+                    temperature=0.7,
                 )
                 ai_reply = response.choices[0].message.content
             except Exception as e:

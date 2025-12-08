@@ -28,13 +28,13 @@ export default function HomePage() {
                             initial={{ opacity: 0, y: -10 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
-                            className="border px-4 py-1 rounded-full text-sm uppercase tracking-wider mb-4 hover:bg-white hover:text-[#5b8c51] "
+                            className="border px-4 py-1 rounded-full text-sm uppercase tracking-wider mb-4"
                         >
                             Hãy tin vào chất lượng!
                         </motion.button>
 
                         <h1 className="text-5xl font-bold leading-tight mb-4">
-                            Canh tác thông minh tại Hóc Môn 🌾
+                            TL Rice tại Hóc Môn 🌾
                         </h1>
                         <p className="text-lg text-gray-100 mb-6">
                             Áp dụng IoT, GIS và AI để giám sát, phân tích và tối ưu quá trình
@@ -42,7 +42,7 @@ export default function HomePage() {
                             bảo vệ môi trường.
                         </p>
 
-                        <button className="bg-white text-[#5b8c51]  font-semibold px-6 py-3 rounded-full flex items-center space-x-2 hover:bg-gray-200">
+                        <button className="bg-white text-[#5b8c51]  font-semibold px-6 py-3 rounded-full flex items-center space-x-2">
                             <span>Vì những ruộng lúa tươi tốt!</span>
                         </button>
                     </motion.div>
@@ -55,7 +55,7 @@ export default function HomePage() {
                     >
                         <Image
                             src="/smartfarm.png"
-                            alt="Smart farming"
+                            alt="TL Rice"
                             width={600}
                             height={400}
                             className="rounded-2xl shadow-xl border-4 border-white/30"
@@ -81,7 +81,7 @@ export default function HomePage() {
                         >
                             <h2 className="text-3xl font-bold text-[#5b8c51] mb-4">Về dự án</h2>
                             <p className="text-lg leading-relaxed mb-4">
-                                <strong>Canh tác thông minh</strong> ứng dụng <strong>GIS</strong> để theo dõi ruộng lúa, <strong>IoT</strong> để thu thập dữ liệu môi trường và <strong>AI</strong> để phát hiện sớm sâu bệnh.
+                                <strong>TL Rice</strong> ứng dụng <strong>GIS</strong> để theo dõi ruộng lúa, <strong>IoT</strong> để thu thập dữ liệu môi trường và <strong>AI</strong> để phát hiện sớm sâu bệnh.
                             </p>
                             <p className="text-lg">
                                 Giúp nông dân ra quyết định chính xác, tiết kiệm tài nguyên và tăng năng suất vụ mùa.
@@ -128,7 +128,7 @@ export default function HomePage() {
                                 <motion.div
                                     key={i}
                                     whileHover={{ scale: 1.05 }}
-                                    className="bg-white rounded-2xl p-6 shadow-md hover:shadow-xl transition"
+                                    className="bg-white rounded-2xl p-6 shadow-md transition"
                                 >
                                     <div className="text-[#5b8c51]  mb-4 flex justify-center">
                                         {f.icon}
@@ -146,7 +146,7 @@ export default function HomePage() {
                         Hãy cùng xây dựng nền nông nghiệp bền vững 🌍
                     </h2>
                     <p className="text-lg mb-8 text-white/90">
-                        Kết nối, chia sẻ và phát triển cùng nền tảng Canh Tác Thông Minh.
+                        Kết nối, chia sẻ và phát triển cùng nền tảng TL Rice.
                     </p>
                     <motion.button
                         whileHover={{ scale: 1.1 }}
