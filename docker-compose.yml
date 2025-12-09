@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./sf_backend
+    command: gunicorn --bind 0.0.0.0:8000 core.wsgi:application
+    env_file:
+      - ./sf_backend/.env
+    expose:
+      - "8000"
+
+  frontend:
+    build: ./sf_frontend
+    env_file:
+      - ./sf_frontend/.env
+    expose:
+      - "3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=https://your-domain.com/api/
+
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - frontend
