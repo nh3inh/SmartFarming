@@ -192,7 +192,10 @@ CORS_ALLOWED_ORIGINS = [
 
 CSRF_TRUSTED_ORIGINS = [
     "http://tlrice.space",
+    "https://www.tlrice.space",
     "https://tlrice.space",
     "http://52.74.40.153",
     "http://localhost:3000",
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
