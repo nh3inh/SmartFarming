@@ -69,14 +69,7 @@ SECRET_KEY = "django-insecure-eign(qedgs^errt$ny8yo^15so$==lg92&))3wm_h76bn63$#m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    "52.74.40.153",
-    "localhost",
-    "127.0.0.1",
-    "tlrice.space",
-    "www.tlrice.space",
-]
-
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
