@@ -9,6 +9,7 @@ from rest_framework import permissions
 from django.http import JsonResponse
 from django.db.models import Max, Min
 from django.db.models import Max
+from django.conf import settings
 
 class CornfieldViewSet(viewsets.ModelViewSet):
     queryset = Cornfield.objects.all()
@@ -25,7 +26,7 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='my-fields')
     def my_fields(self, request):
         try:
-            profile_url = f"https://tlrice.space/api/profile/"
+            profile_url = f"{settings.INTERNAL_API_BASE}/api/profile/"
             cookies = request.COOKIES
             res = requests.get(profile_url, cookies=cookies, timeout=5)
         except Exception as e:
@@ -57,7 +58,7 @@ class CornfieldInfoViewSet(viewsets.ModelViewSet):
         API trả về bản ghi mới nhất cho mỗi cặp (farmer_id, cornfield_id)
         """
         try:
-            profile_url = f"https://tlrice.space/api/profile/"
+            profile_url = f"{settings.INTERNAL_API_BASE}/api/profile/"
             cookies = request.COOKIES
             res = requests.get(profile_url, cookies=cookies, timeout=5)
         except Exception as e:

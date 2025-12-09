@@ -1,6 +1,15 @@
-// src/app/page.tsx
-import { redirect } from "next/navigation";
+// // src/app/page.tsx
+// import { redirect } from "next/navigation";
+
+// export default function Page() {
+//   redirect("/home");
+// }
+
 
 export default function Page() {
-  redirect("/home");
+  return (
+    <div>
+      Loading...
+    </div>
+  );
 }

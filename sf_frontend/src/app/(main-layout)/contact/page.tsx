@@ -133,7 +133,7 @@ export default function ContactPage() {
                         >
                             <li>• Email: <span className="font-semibold">ngholinh.2263@gmail.com</span></li>
                             <li>• Hotline: <span className="font-semibold">+84 3952 2540</span></li>
-                            <li>• Website: <span className="font-semibold">www.smartfarming.net</span></li>
+                            <li>• Website: <span className="font-semibold">https://tlrice.space</span></li>
                         </motion.ul>
 
                         <motion.div

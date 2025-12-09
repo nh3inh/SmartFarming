@@ -5,9 +5,9 @@ from rest_framework.response import Response
 from .models import FarmerField
 from .serializers import FarmerFieldSerializer
 from rest_framework.exceptions import PermissionDenied
+from django.conf import settings
 
-PROFILE_API_URL = "https://tlrice.space/api/profile/"
-
+PROFILE_API_URL = f"{settings.INTERNAL_API_BASE}/api/profile/"
 
 class FarmerFieldListCreateAPIView(generics.ListCreateAPIView):
     """

@@ -15,7 +15,9 @@ from django.http import StreamingHttpResponse
 import json
 import time
 import queue
+from django.conf import settings
 
+url = f"{settings.INTERNAL_API_BASE}/api/ml_models/predict/"
 VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
 
 client_queues = []
@@ -95,7 +97,7 @@ def firebase_webhook(request):
     confidence = 0.0
     try:
         ml_res = requests.post(
-            "https://tlrice.space/api/ml_models/predict/",
+            url,
             files={"image": requests.get(s3_image_url, stream=True).raw},
             timeout=20,
         )
@@ -110,7 +112,7 @@ def firebase_webhook(request):
 
     farmer_id = None
     try:
-        obs_res = requests.get("https://tlrice.space/api/observation/farmer-fields/public/", timeout=10)
+        obs_res = requests.get(f"{settings.INTERNAL_API_BASE}/api/observation/farmer-fields/public/", timeout=10)
         if obs_res.status_code == 200:
             for field in obs_res.json():
                 if field.get("iot_device_id") == device_id:
@@ -123,7 +125,7 @@ def firebase_webhook(request):
     ms = 0.0
     if gps_lat is not None and gps_lon is not None:
         try:
-            corn_res = requests.get("https://tlrice.space/api/cornfields/", timeout=10)
+            corn_res = requests.get(f"{settings.INTERNAL_API_BASE}/api/cornfields/", timeout=10)
             if corn_res.status_code == 200:
                 corn_json = corn_res.json()
                 if isinstance(corn_json, dict) and "features" in corn_json:

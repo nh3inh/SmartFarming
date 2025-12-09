@@ -70,7 +70,7 @@ SECRET_KEY = "django-insecure-eign(qedgs^errt$ny8yo^15so$==lg92&))3wm_h76bn63$#m
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    "47.130.123.80",
+    "52.74.40.153",
     "localhost",
     "127.0.0.1",
     "tlrice.space",
@@ -136,10 +136,10 @@ WSGI_APPLICATION = "config.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.contrib.gis.db.backends.postgis",
-        "NAME": "smartfarming_gis_db",
+        "NAME": "tlrice-database",
         "USER": "postgres",
         "PASSWORD": "#MK220603u",
-        "HOST": "smartfarming-db.czyg2c4gejf7.ap-southeast-1.rds.amazonaws.com",
+        "HOST": "tlrice-database.cxouw2k8uuq7.ap-southeast-1.rds.amazonaws.com",
         "PORT": "5432",
     },
 }
@@ -189,8 +189,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://47.130.123.80",
-    "http://47.130.123.80:3000",
+    "http://52.74.40.153",
+    "http://52.74.40.153:3000",
     "http://tlrice.space",
     "http://www.tlrice.space",
     "https://tlrice.space",
@@ -200,6 +200,6 @@ CORS_ALLOWED_ORIGINS = [
 CSRF_TRUSTED_ORIGINS = [
     "http://tlrice.space",
     "https://tlrice.space",
-    "http://47.130.123.80",
+    "http://52.74.40.153",
     "http://localhost:3000",
 ]

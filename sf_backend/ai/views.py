@@ -19,7 +19,7 @@ class AIChatView(APIView):
             return profile_data
 
         try:
-            profile_url = f"https://tlrice.space/api/profile/"
+            profile_url = f"{settings.INTERNAL_API_BASE}/api/profile/"
             res = requests.get(profile_url, cookies=request.COOKIES, timeout=5)
             res.raise_for_status()
             profile_data = res.json()
