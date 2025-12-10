@@ -16,22 +16,24 @@ AGRI_RULES = {
     "environment": [
         ["Tư vấn", "mưa", "nắng", "bão", "nhiệt độ", "độ ẩm"],
         ["thời tiết", "mực nước", "tưới", "thoát nước", "ngập", "khô hạn"],
-        ["ruộng lúa","nên", "điều chỉnh", "ứng phó", "biện pháp"],
+        ["ruộng lúa", "nên", "điều chỉnh", "ứng phó", "biện pháp"],
     ],
     "fertilizer": [
         ["Đề xuất", "phân", "npk", "ure", "kali", "hữu cơ"],
         ["phân bón", "bón thúc", "bón lót", "đẻ nhánh", "làm đòng"],
-        ["cho ruộng","liều", "cách bón", "nên dùng", "tư vấn"],
+        ["cho ruộng", "liều", "cách bón", "nên dùng", "tư vấn"],
     ],
     "action_plan": [
-        ["Tư vấn","kế hoạch", "cần làm gì", "tiếp theo", "xử lý"],
+        ["Tư vấn", "kế hoạch", "cần làm gì", "tiếp theo", "xử lý"],
         ["lịch trình", "hôm nay", "ngày mai", "2 ngày", "1 tuần", "7 ngày", "14 ngày"],
-        ["canh tác","nước", "phân", "phun", "bệnh", "thời tiết"],
+        ["canh tác", "nước", "phân", "phun", "bệnh", "thời tiết"],
     ],
 }
 
+
 def normalize_text(text: str) -> str:
-    return re.sub(r'\s+', '', text.lower())
+    return re.sub(r"\s+", "", text.lower())
+
 
 def match_groups(user_message: str, groups: list[list[str]]) -> bool:
     msg = normalize_text(user_message)
@@ -40,25 +42,80 @@ def match_groups(user_message: str, groups: list[list[str]]) -> bool:
             return False
     return True
 
+
+def analyze_intent_with_ai(user_message: str) -> str:
+    """
+    Dùng GPT để phân loại câu hỏi nếu từ khóa không bắt được.
+    Trả về: 'disease', 'environment', 'fertilizer', 'action_plan' hoặc 'general'
+    """
+    system_prompt = """
+    Bạn là bộ phân loại ý định cho ứng dụng 'Bác sĩ Lúa'.
+    Hãy phân loại câu hỏi người dùng vào 1 trong 4 nhóm sau:
+    1. 'disease': Hỏi về sâu bệnh, lá vàng, đốm, nấm, côn trùng, cách trị bệnh.
+    2. 'environment': Hỏi về thời tiết, mưa nắng, ngập nước, khô hạn, đất đai.
+    3. 'fertilizer': Hỏi về phân bón, dinh dưỡng, cách bón phân.
+    4. 'action_plan': Hỏi về lịch trình canh tác, kế hoạch làm gì tiếp theo.
+    
+    Nếu câu hỏi là chào hỏi xã giao, hoặc không liên quan kỹ thuật lúa: trả về 'general'.
+    CHỈ TRẢ VỀ ĐÚNG 1 TỪ KẾT QUẢ (không giải thích).
+    """
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message},
+            ],
+            temperature=0,
+            max_tokens=10,
+        )
+        intent = response.choices[0].message.content.strip().lower()
+
+        valid_intents = ["disease", "environment", "fertilizer", "action_plan"]
+        if intent in valid_intents:
+            return intent
+        return "general"
+
+    except Exception as e:
+        logger.error(f"Lỗi phân loại AI: {e}")
+        return "general"
+
+
 def classify_agriculture_question(user_message: str):
     for key, groups in AGRI_RULES.items():
         if match_groups(user_message, groups):
             return key
+
+    if len(user_message.split()) > 2:
+        ai_intent = analyze_intent_with_ai(user_message)
+        if ai_intent != "general":
+            return ai_intent
+
     return None
+
 
 def is_agriculture_question(user_message: str) -> bool:
     return classify_agriculture_question(user_message) is not None
 
-def _call_ai_system(system_prompt: str, user_prompt: str, max_tokens: int = 400) -> str:
+
+def _call_ai_system(
+    system_prompt: str, user_prompt: str, history: list = [], max_tokens: int = 400
+) -> str:
     retries = 3
+
+    messages_payload = [{"role": "system", "content": system_prompt}]
+
+    if history:
+        messages_payload.extend(history)
+
+    messages_payload.append({"role": "user", "content": user_prompt})
+
     for attempt in range(retries):
         try:
             response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
+                model="gpt-4.1-mini",
+                messages=messages_payload,
                 temperature=0.6,
                 max_tokens=max_tokens,
             )
@@ -81,19 +138,29 @@ def _call_ai_system(system_prompt: str, user_prompt: str, max_tokens: int = 400)
             return "Lỗi không xác định khi tạo tư vấn AI."
     return "Hệ thống AI tạm thời quá tải."
 
+
 def generate_ai_consultation(
-    field_data: dict, latest_info: dict, weather_data: dict, user_message: str
+    field_data: dict,
+    latest_info: dict,
+    weather_data: dict,
+    user_message: str,
+    history: list = [],
 ) -> str:
-    area_m2 = latest_info.get("cornfield", {}).get("properties", {}).get("area_m2", "N/A")
+    area_m2 = (
+        latest_info.get("cornfield", {}).get("properties", {}).get("area_m2", "N/A")
+    )
     area_cong = round(area_m2 / 100, 2) if area_m2 != "N/A" else "N/A"
+
     DISEASE_LABELS = {
-    "healthy": "Khỏe mạnh",
-    "blast": "Đạo ôn",
-    "brown_spot": "Đốm nâu",
-    "bacterial_leaf_blight": "Cháy bìa lá",
+        "healthy": "Khỏe mạnh",
+        "blast": "Đạo ôn",
+        "brown_spot": "Đốm nâu",
+        "bacterial_leaf_blight": "Cháy bìa lá",
     }
-    loai_benh = DISEASE_LABELS.get(latest_info.get('disease_class', ''), "Không xác định")
-    
+    loai_benh = DISEASE_LABELS.get(
+        latest_info.get("disease_class", ""), "Không xác định"
+    )
+
     context = f"""
 Bạn là "Bác sĩ Lúa" — chuyên gia chẩn đoán bệnh và tư vấn canh tác lúa.
 
@@ -167,54 +234,18 @@ Cách viết:
 - Không tóm tắt chung chung.
 - Ưu tiên đưa ra thời điểm cụ thể (ví dụ: sáng mai 6–7h, sau mưa 2–3 giờ…).
 - Luôn nhắc mốc thời gian để nông dân biết đây là kế hoạch NGẮN HẠN 1–14 ngày.
-
 """
-    retries = 3
-    for attempt in range(retries):
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "Bạn là Bác sĩ Lúa – chuyên gia nông nghiệp thân thiện, giải thích ngắn gọn và chính xác.",
-                    },
-                    {"role": "user", "content": context},
-                ],
-                temperature=0.7,
-                max_tokens=820,
-            )
+    system_prompt = "Bạn là Bác sĩ Lúa – chuyên gia nông nghiệp thân thiện, giải thích ngắn gọn và chính xác."
 
-            print(f"Prompt tokens: {response.usage.prompt_tokens}")
-            print(f"Completion tokens: {response.usage.completion_tokens}")
-            print(f"Total tokens: {response.usage.total_tokens}")
+    return _call_ai_system(system_prompt, context, history=history, max_tokens=820)
 
-            reply = response.choices[0].message.content.strip()
-            return reply or "Bác sĩ chưa có câu trả lời cụ thể, vui lòng thử lại nhé 🌱"
-
-        except RateLimitError:
-            wait_time = (attempt + 1) * 10
-            logger.warning(f"Rate limit hit — retrying in {wait_time}s...")
-            time.sleep(wait_time)
-        except (APIConnectionError, APIError) as e:
-            logger.error(f"OpenAI API error: {e}")
-            if attempt < retries - 1:
-                time.sleep(3)
-            else:
-                return (
-                    "Máy chủ AI đang bận hoặc mất kết nối, vui lòng thử lại sau nhé."
-                )
-        except OpenAIError as e:
-            logger.exception(f"Lỗi OpenAI: {e}")
-            return "Có lỗi xảy ra khi sinh tư vấn, vui lòng thử lại sau nhé"
-        except Exception as e:
-            logger.exception(f"Lỗi không xác định: {e}")
-            return "Có lỗi xảy ra khi sinh tư vấn, vui lòng thử lại sau nhé"
-
-    return "Hệ thống AI tạm quá tải, hãy thử lại sau vài phút nhé."
 
 def generate_disease_advice(
-    field_data: dict, latest_info: dict, weather_data: dict, user_message: str
+    field_data: dict,
+    latest_info: dict,
+    weather_data: dict,
+    user_message: str,
+    history: list = [],
 ) -> str:
     system = "Bạn là Bác sĩ Lúa — chuyên gia xử lý sâu bệnh. Viết ngắn gọn, thực tế, ưu tiên hành động 0-24h, 2-7 ngày, 7-14 ngày."
     user = f"""
@@ -232,11 +263,15 @@ Yêu cầu trả lời:
 6) Trả lời dưới 500 token
 Trả bằng tiếng Việt, rõ ràng, có bullet/ngắt dòng, dùng emoji nhẹ nhàng.
 """
-    return _call_ai_system(system, user, max_tokens=520)
+    return _call_ai_system(system, user, history=history, max_tokens=520)
 
 
 def generate_environment_advice(
-    field_data: dict, latest_info: dict, weather_data: dict, user_message: str
+    field_data: dict,
+    latest_info: dict,
+    weather_data: dict,
+    user_message: str,
+    history: list = [],
 ) -> str:
     system = "Bạn là Bác sĩ Lúa — chuyên gia về quản lý các chỉ số môi trường và ứng phó thời tiết. Hướng dẫn rõ ràng, hành động cụ thể."
     user = f"""
@@ -252,11 +287,15 @@ Yêu cầu:
 5) Trả lời dưới 500 token
 Trả tiếng Việt thực tế, ghi rõ thời điểm (sáng/chiều/ngày cụ thể), nếu có số đo hãy nêu (cm, giờ).
 """
-    return _call_ai_system(system, user, max_tokens=520)
+    return _call_ai_system(system, user, history=history, max_tokens=520)
 
 
 def generate_fertilizer_advice(
-    field_data: dict, latest_info: dict, weather_data: dict, user_message: str
+    field_data: dict,
+    latest_info: dict,
+    weather_data: dict,
+    user_message: str,
+    history: list = [],
 ) -> str:
     system = "Bạn là Bác sĩ Lúa — chuyên gia dinh dưỡng cây trồng. Cho khuyến nghị cụ thể cho ruộng (ruộng có thể có bệnh nên cần chú ý), ưu tiên thực tế cho nông dân."
     user = f"""
@@ -273,4 +312,4 @@ Yêu cầu:
 6) Trả lời dưới 500 token
 Trả bằng tiếng Việt, ngắn gọn, có bullet points và mốc thời gian.
 """
-    return _call_ai_system(system, user, max_tokens=520)
+    return _call_ai_system(system, user, history=history, max_tokens=520)

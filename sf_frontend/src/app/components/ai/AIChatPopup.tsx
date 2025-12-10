@@ -177,7 +177,8 @@ export default function AIChatPopup({ onClose, messages, setMessages, startSimul
                     startSimulateTyping((data.ai_reply));
                 }
             } else {
-                startSimulateTyping("Vui lòng đăng nhập để sử dụng chức năng này nhé 😅");
+                const errorMsg = data.error || "Vui lòng đăng nhập để sử dụng chức năng này nhé 😅";
+                startSimulateTyping(errorMsg);
             }
         } catch {
             setIsShowing(false);

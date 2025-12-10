@@ -577,7 +577,7 @@ export default function AssetPage() {
                         )}
 
                         {showDeleteModal && (
-                            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+                            <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-1000">
                                 <div className="bg-white p-6 rounded-xl shadow-lg w-80 text-center">
                                     <p className="mb-4 font-medium">Bạn có chắc muốn xóa ruộng này?</p>
                                     <div className="flex justify-around">
