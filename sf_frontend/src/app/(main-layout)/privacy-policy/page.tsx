@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
                 </h1>
 
                 <p className="mb-6 text-gray-600">
-                    Tại <span className="font-semibold">SmartFarming</span>, chúng tôi cam kết bảo vệ sự riêng tư
+                    Tại <span className="font-semibold">TL Rice</span>, chúng tôi cam kết bảo vệ sự riêng tư
                     và bảo mật thông tin cá nhân của khách hàng. Chính sách này giải thích cách chúng tôi thu thập,
                     sử dụng và bảo vệ dữ liệu của bạn khi truy cập và sử dụng dịch vụ.
                 </p>
@@ -32,7 +32,7 @@ export default function PrivacyPolicyPage() {
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">2. Cách chúng tôi sử dụng thông tin</h2>
                     <p className="mb-2">Dữ liệu của bạn được sử dụng cho các mục đích sau:</p>
                     <ul className="list-disc pl-6 space-y-1">
-                        <li>Cung cấp và cải thiện chất lượng dịch vụ SmartFarming.</li>
+                        <li>Cung cấp và cải thiện chất lượng dịch vụ TL Rice.</li>
                         <li>Hỗ trợ khách hàng và phản hồi yêu cầu của bạn.</li>
                         <li>Gửi thông tin cập nhật, khuyến mãi hoặc tin tức (nếu bạn đồng ý).</li>
                         <li>Bảo đảm an toàn, ngăn chặn gian lận và tuân thủ pháp luật.</li>
@@ -50,7 +50,7 @@ export default function PrivacyPolicyPage() {
 
                 <section className="mb-8">
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">4. Chia sẻ thông tin</h2>
-                    <p className="mb-2">SmartFarming cam kết không bán hoặc trao đổi thông tin cá nhân của bạn. Tuy nhiên, dữ liệu có thể được chia sẻ với:</p>
+                    <p className="mb-2">TL Rice cam kết không bán hoặc trao đổi thông tin cá nhân của bạn. Tuy nhiên, dữ liệu có thể được chia sẻ với:</p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Đối tác tin cậy hỗ trợ cung cấp dịch vụ.</li>
                         <li>Cơ quan chức năng khi có yêu cầu hợp pháp.</li>
@@ -70,8 +70,8 @@ export default function PrivacyPolicyPage() {
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">6. Liên hệ</h2>
                     <p>
                         Nếu bạn có bất kỳ câu hỏi hoặc yêu cầu nào liên quan đến Chính sách bảo mật, vui lòng liên hệ với chúng tôi qua email:{" "}
-                        <a href="mailto:privacy@smartfarming.vn" className="text-[#5b8c51]  hover:underline">
-                            privacy@smartfarming.vn
+                        <a href="mailto:ngholinh.2263@gmail.com" className="text-[#5b8c51]  hover:underline">
+                            ngholinh.2263@gmail.com
                         </a>
                     </p>
                 </section>

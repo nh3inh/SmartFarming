@@ -124,7 +124,7 @@ export default function Navbar({ className }: NavbarProps) {
                                             className="block px-3 py-3"
                                         >
                                             <span
-                                                className={`inline-block w-[20%] transition-colors duration-200 border-b-4
+                                                className={`inline-block whitespace-nowrap transition-colors duration-200 border-b-4
                                                 ${isActive
                                                         ? "text-yellow-600 border-yellow-500"
                                                         : "text-gray-800 border-transparent hover:text-[#5b8c51]  hover:border-[#5b8c51]"}`}

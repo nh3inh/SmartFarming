@@ -44,7 +44,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_KEY")
 AWS_REGION_NAME = os.getenv("REGION_NAME", "ap-southeast-1")
-AWS_STORAGE_BUCKET_NAME = os.getenv("BUCKET_NAME", "smartfarming-bucket")
+AWS_STORAGE_BUCKET_NAME = os.getenv("BUCKET_NAME", "tlrice-bucket")
 AWS_MODEL_PATH_PL = os.getenv("AWS_MODEL_PATH_PL", "Public/Cornfield_Images/")
 AWS_MODEL_PATH = os.getenv("AWS_MODEL_PATH", "Private/Model/efficientnet_model.keras")
 

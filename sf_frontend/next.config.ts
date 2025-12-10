@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "sinhthainongnghiep.net.vn",
+        hostname: "tlrice-bucket.s3.ap-southeast-1.amazonaws.com",
         port: "",
         pathname: "/**",
       },

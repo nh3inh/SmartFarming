@@ -7,14 +7,20 @@ interface BlogContentProps {
 }
 
 export default function BlogContent({ content }: BlogContentProps) {
+  if (!content) return null;
+
+  const paragraphs = content.split("\n").filter((p) => p.trim() !== "");
+
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.2, duration: 0.8 }}
-      className="bg-white p-8 rounded-2xl shadow-md prose prose-lg md:prose-xl text-gray-800 max-w-full"
-    >
-      <div dangerouslySetInnerHTML={{ __html: content }} />
-    </motion.div>
+    <div className="max-w-4xl mx-auto px-4">
+      {paragraphs.map((paragraph, index) => (
+        <p
+          key={index}
+          className="mb-6 text-lg text-gray-800 leading-8 text-justify font-light"
+        >
+          {paragraph.trim()}
+        </p>
+      ))}
+    </div>
   );
 }

@@ -13,7 +13,7 @@ export default function TermsAndConditionsPage() {
                 </h1>
 
                 <p className="mb-6 text-gray-600">
-                    Chào mừng bạn đến với <span className="font-semibold">SmartFarming</span>.
+                    Chào mừng bạn đến với <span className="font-semibold">TL Rice</span>.
                     Khi truy cập và sử dụng website của chúng tôi, bạn đồng ý tuân thủ những điều khoản và điều kiện dưới đây.
                     Vui lòng đọc kỹ để hiểu rõ quyền và trách nhiệm của bạn.
                 </p>
@@ -21,7 +21,7 @@ export default function TermsAndConditionsPage() {
                 <section className="mb-8">
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">1. Chấp nhận điều khoản</h2>
                     <p>
-                        Khi sử dụng các dịch vụ của SmartFarming, bạn mặc nhiên đồng ý với các điều khoản này.
+                        Khi sử dụng các dịch vụ của TL Rice, bạn mặc nhiên đồng ý với các điều khoản này.
                         Nếu bạn không đồng ý, vui lòng ngừng truy cập hoặc sử dụng dịch vụ.
                     </p>
                 </section>
@@ -31,13 +31,13 @@ export default function TermsAndConditionsPage() {
                     <p className="mb-2">Người dùng cam kết:</p>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Không sử dụng website vào mục đích bất hợp pháp hoặc gây hại cho người khác.</li>
-                        <li>Không can thiệp hoặc phá hoại hệ thống, dữ liệu của SmartFarming.</li>
+                        <li>Không can thiệp hoặc phá hoại hệ thống, dữ liệu của TL Rice.</li>
                         <li>Chịu trách nhiệm về mọi thông tin cung cấp khi sử dụng dịch vụ.</li>
                     </ul>
                 </section>
 
                 <section className="mb-8">
-                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">3. Quyền và trách nhiệm của SmartFarming</h2>
+                    <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">3. Quyền và trách nhiệm của TL Rice</h2>
                     <ul className="list-disc pl-6 space-y-1">
                         <li>Cung cấp dịch vụ theo đúng thông tin đã công bố.</li>
                         <li>Bảo mật thông tin cá nhân của khách hàng theo chính sách bảo mật.</li>
@@ -48,7 +48,7 @@ export default function TermsAndConditionsPage() {
                 <section className="mb-8">
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">4. Giới hạn trách nhiệm</h2>
                     <p>
-                        SmartFarming không chịu trách nhiệm đối với bất kỳ thiệt hại gián tiếp hoặc phát sinh nào
+                        TL Rice không chịu trách nhiệm đối với bất kỳ thiệt hại gián tiếp hoặc phát sinh nào
                         do việc sử dụng hoặc không thể sử dụng dịch vụ, trừ khi pháp luật có quy định khác.
                     </p>
                 </section>
@@ -65,8 +65,8 @@ export default function TermsAndConditionsPage() {
                     <h2 className="text-2xl font-semibold text-[#5b8c51] mb-3">6. Liên hệ</h2>
                     <p>
                         Nếu bạn có câu hỏi về Điều khoản & Điều kiện, vui lòng liên hệ với chúng tôi qua email:{" "}
-                        <a href="mailto:support@smartfarming.vn" className="text-[#5b8c51]  hover:underline">
-                            support@smartfarming.vn
+                        <a href="mailto:ngholinh.2263@gmail.com" className="text-[#5b8c51]  hover:underline">
+                            ngholinh.2263@gmail.com
                         </a>
                     </p>
                 </section>
