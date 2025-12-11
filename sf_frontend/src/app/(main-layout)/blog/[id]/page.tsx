@@ -39,7 +39,6 @@ export default function BlogDetailPage({ params }: PageProps) {
         if (!res.ok) throw new Error("Failed to fetch");
 
         const data = await res.json();
-        console.log("🔥 API trả về link này:", data.image_url);
         setBlog(data);
 
         await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}blog/list_blog/${id}/view/`, {

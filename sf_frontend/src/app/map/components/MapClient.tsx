@@ -1461,16 +1461,17 @@ export default function MapClient() {
     }, [user]);
 
     return (
-        <div className="flex flex-col lg:flex-row h-[89vh] w-full">
-            <div id="map" className="flex-1 h-[45vh] lg:h-full" />
+        <div style={{ display: 'flex', height: '89vh', width: '100%' }}>
             <div
-                className={`
-                    bg-white overflow-y-auto transition-all duration-300
-                    ${selectedField ? 'p-4' : 'p-0'}
-                    w-full lg:w-[40%]
-                    ${selectedField ? 'max-h-[55vh] lg:max-h-full' : 'max-h-0'}
-                    border-b lg:border-b-0 lg:border-r border-gray-300
-                `}
+                style={{
+                    width: selectedField ? '40%' : '0',
+                    transition: 'width 0.3s ease',
+                    overflowY: 'auto',
+                    background: '#fff',
+                    borderRight: '1px solid #ccc',
+                    padding: selectedField ? '16px' : '0',
+                    position: 'relative',
+                }}
             >
                 {selectedField ? (
                     <div className="font-sans text-[14px] space-y-5 animate-fadeIn">
@@ -1556,6 +1557,8 @@ export default function MapClient() {
                     </div>
                 )}
             </div>
+
+            <div id="map" style={{ flexGrow: 1 }} />
         </div>
     );
 
