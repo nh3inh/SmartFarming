@@ -62,6 +62,8 @@ export default function MapClient() {
     const [suggestions, setSuggestions] = useState<Array<any>>([]);
     const [farmersList, setFarmersList] = useState<Array<any>>([]);
     const searchLayerRef = useRef<L.FeatureGroup | null>(new L.FeatureGroup());
+    const bufferLayerRef = useRef<L.Layer | L.LayerGroup | null>(null);
+    const allBuffersLayerRef = useRef<L.FeatureGroup | null>(null);
 
     const diseaseColorMap: Record<string, string> = {
         healthy_10: "#E6FFE6",
@@ -174,6 +176,12 @@ export default function MapClient() {
         const timer = setTimeout(() => {
             mapRef.current?.invalidateSize();
         }, 250);
+        const info = selectedField?.info;
+        const map = mapRef.current;
+
+        if (map && info && info.gps_lat && info.gps_lon) {
+            map.flyTo([info.gps_lat, info.gps_lon], 18, { animate: true, duration: 1.0 });
+        }
         return () => clearTimeout(timer);
     }, [selectedField]);
 
@@ -504,18 +512,25 @@ export default function MapClient() {
         const allFieldsLayer = new L.FeatureGroup();
         allFieldsLayer.addTo(map);
         allFieldsLayerRef.current = allFieldsLayer;
+
+        const allBuffersLayer = new L.FeatureGroup();
+        allBuffersLayer.addTo(map);
+        allBuffersLayerRef.current = allBuffersLayer;
+
         const searchLayer = new L.FeatureGroup();
         searchLayer.addTo(map);
         searchLayerRef.current = searchLayer;
 
-        // Hàm hiển thị ruộng lên bản đồ
         function renderFieldsOnMap(
             allData: any,
             myFieldIds: Set<number>,
             myFields: any[],
             showOthers = true
         ) {
-            // Chuyển GeoJSON sang Leaflet
+            if (allBuffersLayerRef.current) {
+                allBuffersLayerRef.current.clearLayers();
+            }
+
             const features = allData.features.map((f: any) => {
                 const geom = WKT.parse((f.geometry || "").replace(/^SRID=\d+;/, ""));
                 return {
@@ -533,14 +548,15 @@ export default function MapClient() {
             features.forEach((feature: any) => {
                 const fieldId = feature.properties.id;
                 const shouldShow = myFieldIds.has(fieldId);
+
                 if (!shouldShow && !showOthers) return;
 
                 const info = myFields.find((f: any) => f.cornfield?.id === fieldId);
 
                 const disease = info?.disease_class;
+                const status = info?.status;
 
                 const color = disease ? diseaseColorMap[disease] : "#2611dd";
-
                 const fillOpacity = disease ? 0.45 : status ? 0.45 : 0.25;
 
                 const layer = L.geoJSON(feature, { style: { color, weight: 2, fillOpacity } });
@@ -552,15 +568,48 @@ export default function MapClient() {
                     l.id = feature.properties.id;
                     (l as any)._originalColor = color;
                     (l as any)._originalFill = fillOpacity;
+
                     l.on('click', () => {
                         setSelectedField({ feature, info });
                     });
 
                     allFieldsLayerRef.current?.addLayer(l);
                 });
+
+                if (info && typeof info.gps_lat === 'number' && typeof info.gps_lon === 'number') {
+                    if (info.gps_lat !== 0 || info.gps_lon !== 0) {
+                        const center: L.LatLngExpression = [info.gps_lat, info.gps_lon];
+                        const bufferRadius = 20;
+
+                        const bufferCircle = L.circle(center, {
+                            color: '#fff',
+                            weight: 1,
+                            fill: false,
+                            radius: bufferRadius,
+                            dashArray: '5, 5',
+                            interactive: false
+                        });
+
+                        const centerPoint = L.circleMarker(center, {
+                            radius: 3,
+                            color: '#fff',
+                            weight: 1,
+                            fillColor: color,
+                            fillOpacity: 1,
+                            interactive: false
+                        });
+
+                        if (allBuffersLayerRef.current) {
+                            allBuffersLayerRef.current.addLayer(bufferCircle);
+                            allBuffersLayerRef.current.addLayer(centerPoint);
+                        }
+                    }
+                }
             });
 
-
+            if (allBuffersLayerRef.current) {
+                (allBuffersLayerRef.current as any).bringToFront();
+            }
         }
 
         function createFieldPopupContent(field: any, info: any) {
@@ -1034,6 +1083,7 @@ export default function MapClient() {
                     });
                 }
                 allFieldsLayer.clearLayers();
+                allBuffersLayerRef.current?.clearLayers();
                 if (value === 'none') return;
 
                 try {
@@ -1276,6 +1326,7 @@ export default function MapClient() {
             mapRef.current = null;
             userMarkerRef.current = null;
             allFieldsLayerRef.current = null;
+            allBuffersLayerRef.current = null;
         };
     }, []);
 
@@ -1461,104 +1512,142 @@ export default function MapClient() {
     }, [user]);
 
     return (
-        <div style={{ display: 'flex', height: '89vh', width: '100%' }}>
+        <div className="relative flex flex-col lg:flex-row h-[89vh] w-full overflow-hidden">
+
+            {/* 1. INFO PANEL 
+                - Desktop: Nằm bên TRÁI (do đặt trước trong HTML + flex-row), có border-r
+                - Mobile: Fixed dưới đáy (Bottom Sheet)
+            */}
             <div
-                style={{
-                    width: selectedField ? '40%' : '0',
-                    transition: 'width 0.3s ease',
-                    overflowY: 'auto',
-                    background: '#fff',
-                    borderRight: '1px solid #ccc',
-                    padding: selectedField ? '16px' : '0',
-                    position: 'relative',
-                }}
+                className={`
+                    bg-white overflow-y-auto transition-all duration-300 ease-in-out z-[1001]
+                    
+                    /* --- MOBILE STYLES (Mặc định) --- */
+                    fixed bottom-0 left-0 w-full
+                    rounded-t-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.15)]
+                    ${selectedField ? 'h-[60vh] translate-y-0' : 'h-0 translate-y-full'}
+
+                    /* --- DESKTOP STYLES (Màn hình lớn lg trở lên) --- */
+                    lg:static lg:h-full lg:shadow-none lg:rounded-none lg:translate-y-0
+                    lg:border-r lg:border-gray-200 /* Đổi viền sang bên phải */
+                    ${selectedField ? 'lg:w-[40%]' : 'lg:w-0'}
+                    
+                    p-0
+                `}
             >
                 {selectedField ? (
-                    <div className="font-sans text-[14px] space-y-5 animate-fadeIn">
-                        <h2 className="flex items-center gap-2 text-2xl font-bold text-yellow-400">
-                            <img src="/rice.png" alt="Rice" className="w-8 h-8" />
-                            Thông tin ruộng
-                        </h2>
+                    <div className="relative h-full flex flex-col">
+                        {/* Header & Nút đóng */}
+                        <div className="sticky top-0 bg-white z-10 px-4 pt-4 pb-2 border-b border-gray-100 flex justify-between items-start">
+                            <h2 className="flex items-center gap-2 text-xl font-bold text-yellow-500">
+                                <img src="/rice.png" alt="Rice" className="w-8 h-8" />
+                                Thông tin ruộng
+                            </h2>
 
-                        <div className="flex gap-4 bg-white border rounded-xl p-4 items-start">
-                            {selectedField.info?.image_rel ? (
-                                <div className="flex-shrink-0 w-[120px] h-[120px] overflow-hidden rounded-lg shadow-sm">
-                                    <img
-                                        src={selectedField.info.image_rel}
-                                        alt="Ảnh ruộng"
-                                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="w-[120px] h-[120px] flex items-center justify-center text-gray-400 italic">
-                                    Không có ảnh
-                                </div>
-                            )}
-
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-gray-800 text-[14px]">
-                                <span className="font-semibold text-gray-600">Nông dân:</span>
-                                <span className="font-medium">
-                                    {selectedField.info?.farmer
-                                        ? `${selectedField.info.farmer.last_name ?? ''} ${selectedField.info.farmer.first_name ?? ''}`
-                                        : selectedField.field?.properties?.name ?? 'Chưa có thông tin'}
-                                </span>
-
-                                <span className="font-semibold text-gray-600">Diện tích:</span>
-                                <span className="">
-                                    {Math.round(
-                                        selectedField.info?.cornfield?.properties?.area_m2 ||
-                                        selectedField.feature?.properties?.area_m2 ||
-                                        0
-                                    ).toLocaleString()} m²
-                                </span>
-
-                                <span className="font-semibold text-gray-600">Trạng thái:</span>
-                                <span className="font-semibold">
-                                    {selectedField.info?.disease_class ? (
-                                        <span
-                                            style={{
-                                                color: diseaseColorMap[selectedField.info.disease_class] || '#333',
-                                                fontWeight: 600,
-                                            }}
-                                        >
-                                            {DISEASE_MAP[selectedField.info.disease_class] || selectedField.info.disease_class}
-                                        </span>
-                                    ) : (
-                                        'Không có dữ liệu'
-                                    )}
-                                </span>
-
-                                <span className="font-semibold text-gray-600">Cập nhật lúc:</span>
-                                <span className="italic text-gray-700">
-                                    {(() => {
-                                        const dateStr =
-                                            selectedField.info?.updated_at ||
-                                            selectedField.info?.created_at ||
-                                            selectedField.feature?.properties?.created_at;
-                                        const date = new Date(dateStr);
-                                        return isNaN(date.getTime())
-                                            ? 'Chưa có thông tin'
-                                            : date.toLocaleString('vi-VN');
-                                    })()}
-                                </span>
-                            </div>
+                            <button
+                                onClick={() => setSelectedField(null)}
+                                className="p-2 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-500 transition-colors"
+                                title="Đóng"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
                         </div>
-                        <FieldMetrics info={selectedField.info} />
-                        <button
-                            onClick={() => setSelectedField(null)}
-                            className="fixed top-0 left-[94%] transform -translate-x-1/2 bg-white text-green-600 border-none px-4 py-2 rounded-lg font-semibold shadow-md hover:shadow-lg transition-all"
-                        >
-                            Đóng
-                        </button>
+
+                        {/* Nội dung scroll */}
+                        <div className="p-4 space-y-5 animate-fadeIn flex-1 overflow-y-auto">
+                            <div className="flex flex-col sm:flex-row gap-4 bg-white border rounded-xl p-4 items-start shadow-sm">
+                                {selectedField.info?.image_rel ? (
+                                    <div className="flex-shrink-0 w-full sm:w-[120px] h-[160px] sm:h-[120px] overflow-hidden rounded-lg shadow-sm">
+                                        <img
+                                            src={selectedField.info.image_rel}
+                                            alt="Ảnh ruộng"
+                                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-full sm:w-[120px] h-[120px] bg-gray-50 flex items-center justify-center text-gray-400 italic rounded-lg border border-dashed">
+                                        Không có ảnh
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 gap-y-2 text-gray-800 text-[14px] w-full">
+                                    <div className="flex justify-between border-b border-gray-50 pb-1">
+                                        <span className="font-semibold text-gray-600">Nông dân:</span>
+                                        <span className="font-medium truncate pl-2">
+                                            {selectedField.info?.farmer
+                                                ? `${selectedField.info.farmer.last_name ?? ''} ${selectedField.info.farmer.first_name ?? ''}`
+                                                : selectedField.field?.properties?.name ?? 'Chưa có thông tin'}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between border-b border-gray-50 pb-1">
+                                        <span className="font-semibold text-gray-600">Diện tích:</span>
+                                        <span className="">
+                                            {Math.round(
+                                                selectedField.info?.cornfield?.properties?.area_m2 ||
+                                                selectedField.feature?.properties?.area_m2 ||
+                                                0
+                                            ).toLocaleString()} m²
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between border-b border-gray-50 pb-1">
+                                        <span className="font-semibold text-gray-600">Trạng thái:</span>
+                                        <span className="font-semibold">
+                                            {selectedField.info?.disease_class ? (
+                                                <span
+                                                    style={{
+                                                        color: diseaseColorMap[selectedField.info.disease_class] || '#333',
+                                                        fontWeight: 600,
+                                                    }}
+                                                >
+                                                    {DISEASE_MAP[selectedField.info.disease_class] || selectedField.info.disease_class}
+                                                </span>
+                                            ) : (
+                                                'Không có dữ liệu'
+                                            )}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between pt-1">
+                                        <span className="font-semibold text-gray-600">Cập nhật:</span>
+                                        <span className="italic text-gray-500 text-xs flex items-center">
+                                            {(() => {
+                                                const dateStr =
+                                                    selectedField.info?.updated_at ||
+                                                    selectedField.info?.created_at ||
+                                                    selectedField.feature?.properties?.created_at;
+                                                const date = new Date(dateStr);
+                                                return isNaN(date.getTime())
+                                                    ? 'Chưa có thông tin'
+                                                    : date.toLocaleString('vi-VN');
+                                            })()}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <FieldMetrics info={selectedField.info} />
+
+                            {/* Đệm dưới cùng cho mobile */}
+                            <div className="h-8 lg:h-0"></div>
+                        </div>
                     </div>
                 ) : (
-                    <div className="text-gray-500 text-center mt-[40%] italic">
-                        Ấn vào 1 ruộng để xem chi tiết 🌱
+                    // Placeholder khi chưa chọn ruộng (chỉ hiện trên Desktop)
+                    <div className="hidden lg:flex flex-col items-center justify-center h-full text-gray-400 italic">
+                        <img src="/rice.png" alt="Rice" className="w-16 h-16 opacity-20 mb-2" />
+                        <span>Ấn vào 1 ruộng để xem chi tiết 🌱</span>
                     </div>
                 )}
             </div>
 
-            <div id="map" style={{ flexGrow: 1 }} />
+            {/* 2. MAP CONTAINER 
+                - Desktop: Nằm bên PHẢI (flex-1 chiếm phần còn lại)
+                - Mobile: Full background bên dưới
+            */}
+            <div id="map" className="w-full h-full lg:flex-1 z-0" />
+
         </div>
     );
 
