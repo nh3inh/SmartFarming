@@ -66,56 +66,43 @@ export default function MapClient() {
     const allBuffersLayerRef = useRef<L.FeatureGroup | null>(null);
 
     const diseaseColorMap: Record<string, string> = {
-        healthy_10: "#E6FFE6",
-        healthy_20: "#CCFFCC",
-        healthy_30: "#B3FFB3",
-        healthy_40: "#99FF99",
-        healthy_50: "#80FF80",
-        healthy_60: "#66FF66",
-        healthy_70: "#4DFF4D",
-        healthy_80: "#33FF33",
-        healthy_90: "#1AFF1A",
         healthy: "#33CC00",
+        healthy_blast_risk: "#66E000",
+        healthy_brown_spot_risk: "#80E61A",
+        healthy_bacterial_leaf_blight_risk: "#99EC33",
+        healthy_high_blast_risk: "#B2F24D",
+        healthy_high_brown_spot_risk: "#CBF866",
+        healthy_high_bacterial_leaf_blight_risk: "#99FF99",
 
-        blast_10: "#FFE6CC",
-        blast_20: "#FFD9B3",
-        blast_30: "#FFCC99",
-        blast_40: "#FFBF80",
-        blast_50: "#FFB266",
-        blast_60: "#FFA54D",
-        blast_70: "#FF9933",
-        blast_80: "#FF8C1A",
-        blast_90: "#FF8000",
-        blast: "#FF9900",
+        blast: "#FFCC99",
+        blast_critical: "#FF9900",
 
-        brown_spot_10: "#FFE6FF",
-        brown_spot_20: "#FFCCFF",
-        brown_spot_30: "#FFB3FF",
-        brown_spot_40: "#FF99FF",
-        brown_spot_50: "#FF80FF",
-        brown_spot_60: "#FF66FF",
-        brown_spot_70: "#FF33FF",
-        brown_spot_80: "#FF00FF",
-        brown_spot_90: "#FB00FF",
-        brown_spot: "#FB00FF",
+        brown_spot: "#FFB3FF",
+        brown_spot_critical: "#FB00FF",
 
-        bacterial_leaf_blight_10: "#FFE6F0",
-        bacterial_leaf_blight_20: "#FFCCE0",
-        bacterial_leaf_blight_30: "#FFB3D1",
-        bacterial_leaf_blight_40: "#FF99C1",
-        bacterial_leaf_blight_50: "#FF80B2",
-        bacterial_leaf_blight_60: "#FF66A3",
-        bacterial_leaf_blight_70: "#FF4D94",
-        bacterial_leaf_blight_80: "#FF3366",
-        bacterial_leaf_blight_90: "#CC3366",
-        bacterial_leaf_blight: "#CC3366",
+        bacterial_leaf_blight: "#FFB3D1",
+        bacterial_leaf_blight_critical: "#CC3366"
     };
 
     const DISEASE_MAP: Record<string, string> = {
-        bacterial_leaf_blight: "Cháy bìa lá",
+        healthy: "Khỏe mạnh",
+
+        healthy_blast_risk: "Khỏe mạnh (có nguy cơ đạo ôn)",
+        healthy_brown_spot_risk: "Khỏe mạnh (có nguy cơ đốm nâu)",
+        healthy_bacterial_leaf_blight_risk: "Khỏe mạnh (có nguy cơ cháy bìa lá)",
+
+        healthy_high_blast_risk: "Khỏe mạnh (nguy cơ cao đạo ôn)",
+        healthy_high_brown_spot_risk: "Khỏe mạnh (nguy cơ cao đốm nâu)",
+        healthy_high_bacterial_leaf_blight_risk: "Khỏe mạnh (nguy cơ cao cháy bìa lá)",
+
         blast: "Đạo ôn",
+        blast_critical: "Đạo ôn (khẩn cấp)",
+
         brown_spot: "Đốm nâu",
-        healthy: "Khỏe mạnh"
+        brown_spot_critical: "Đốm nâu (khẩn cấp)",
+
+        bacterial_leaf_blight: "Cháy bìa lá",
+        bacterial_leaf_blight_critical: "Cháy bìa lá (khẩn cấp)"
     };
 
     useEffect(() => {

@@ -22,6 +22,7 @@ VN_TZ = ZoneInfo("Asia/Ho_Chi_Minh")
 
 client_queues = []
 
+
 def sse_subscribe(request):
     q = queue.Queue()
     client_queues.append(q)
@@ -34,9 +35,10 @@ def sse_subscribe(request):
         except GeneratorExit:
             client_queues.remove(q)
 
-    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
-    response['Cache-Control'] = 'no-cache'
+    response = StreamingHttpResponse(event_stream(), content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
     return response
+
 
 s3_client = boto3.client(
     "s3",
@@ -54,7 +56,9 @@ def firebase_webhook(request):
     try:
         data = json.loads(request.body)
     except Exception as e:
-        return JsonResponse({"success": False, "message": f"Invalid JSON: {str(e)}"}, status=400)
+        return JsonResponse(
+            {"success": False, "message": f"Invalid JSON: {str(e)}"}, status=400
+        )
 
     device_id = data.get("device_id")
     gps = data.get("gps", {})
@@ -79,7 +83,9 @@ def firebase_webhook(request):
     if image_url:
         try:
             image_data = requests.get(image_url, timeout=15).content
-            filename = f"{device_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            filename = (
+                f"{device_id}_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.jpg"
+            )
             s3_key = f"{settings.AWS_MODEL_PATH_PL}{filename}"
 
             s3_client.put_object(
@@ -112,7 +118,10 @@ def firebase_webhook(request):
 
     farmer_id = None
     try:
-        obs_res = requests.get(f"{settings.INTERNAL_API_BASE}/api/observation/farmer-fields/public/", timeout=10)
+        obs_res = requests.get(
+            f"{settings.INTERNAL_API_BASE}/api/observation/farmer-fields/public/",
+            timeout=10,
+        )
         if obs_res.status_code == 200:
             for field in obs_res.json():
                 if field.get("iot_device_id") == device_id:
@@ -125,7 +134,9 @@ def firebase_webhook(request):
     ms = 0.0
     if gps_lat is not None and gps_lon is not None:
         try:
-            corn_res = requests.get(f"{settings.INTERNAL_API_BASE}/api/cornfields/", timeout=10)
+            corn_res = requests.get(
+                f"{settings.INTERNAL_API_BASE}/api/cornfields/", timeout=10
+            )
             if corn_res.status_code == 200:
                 corn_json = corn_res.json()
                 if isinstance(corn_json, dict) and "features" in corn_json:
@@ -145,7 +156,9 @@ def firebase_webhook(request):
                         else:
                             geom = GEOSGeometry(str(geom_raw))
                     except Exception as e:
-                        print("Parse geometry error for feature id", cf.get("id"), ":", e)
+                        print(
+                            "Parse geometry error for feature id", cf.get("id"), ":", e
+                        )
                         geom = None
 
                     if geom is not None:
@@ -159,6 +172,64 @@ def firebase_webhook(request):
                             print("GEOS contains check error:", e)
         except Exception as e:
             print("Cornfield API error:", e)
+            
+    final_disease_class = (
+        disease_class
+    )
+
+    if cornfield_id is not None:
+        try:
+            def get_base_disease(status_str):
+                if not status_str:
+                    return "healthy"
+                s = status_str.lower()
+                if "blast" in s:
+                    return "blast"
+                if "brown_spot" in s:
+                    return "brown_spot"
+                if "bacterial_leaf_blight" in s:
+                    return "bacterial_leaf_blight"
+                return "healthy"
+
+            last_records = (
+                CornfieldInfo.objects.filter(cornfield_id=cornfield_id)
+                .order_by("-created_at")
+                .values_list("disease_class", flat=True)[:99]
+            )
+
+            history = list(last_records)
+            history.insert(0, disease_class)
+
+            total_records = len(history)
+
+            counts = {"blast": 0, "brown_spot": 0, "bacterial_leaf_blight": 0}
+
+            for status in history:
+                base = get_base_disease(status)
+                if base in counts:
+                    counts[base] += 1
+
+            if total_records > 0:
+                dominant_disease = max(counts, key=counts.get)
+                max_count = counts[dominant_disease]
+
+                percentage = (max_count / total_records) * 100
+
+                print(
+                    f"Analysis [Field {cornfield_id}]: Total={total_records}, Dominant={dominant_disease} ({percentage:.1f}%)"
+                )
+
+                if percentage < 25:
+                    final_disease_class = "healthy"
+                elif 25 <= percentage < 50:
+                    final_disease_class = f"healthy_{dominant_disease}_risk"
+                elif 50 <= percentage < 75:
+                    final_disease_class = dominant_disease
+                else:
+                    final_disease_class = f"{dominant_disease}_critical"
+
+        except Exception as e:
+            print("Error analyzing disease history:", e)
 
     def parse_firebase_time(dt):
         """Parse timestamp from Firebase, trả về VN-aware datetime"""
@@ -172,13 +243,14 @@ def firebase_webhook(request):
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=datetime.timezone.utc)
         return dt.astimezone(VN_TZ)
+
     vn_now = datetime.datetime.now(VN_TZ)
-    
+
     info = CornfieldInfo.objects.create(
         farmer_id=farmer_id,
         cornfield_id=cornfield_id,
         timestamp=parse_firebase_time(timestamp) or vn_now,
-        disease_class=disease_class,
+        disease_class=final_disease_class,
         confidence=confidence,
         ms=ms,
         image_rel=s3_image_url or "",
@@ -200,32 +272,35 @@ def firebase_webhook(request):
         wind_avg=env.get("wind_avg"),
         lux=env.get("lux"),
     )
-    
+
     payload = {
-    "id": info.id,
-    "farmer_id": farmer_id,
-    "cornfield_id": cornfield_id,
-    "disease_class": disease_class,
-    "confidence": confidence,
-    "ms": ms,
-    "image_url": s3_image_url,
-    "created_at_vn": timezone.localtime(info.created_at, VN_TZ).isoformat(),
-    "updated_at_vn": timezone.localtime(info.updated_at, VN_TZ).isoformat(),
-    }
-
-    for q in client_queues:
-        q.put(payload)
-
-    return JsonResponse({
-        "success": True,
-        "message": "CornfieldInfo created successfully",
         "id": info.id,
         "farmer_id": farmer_id,
         "cornfield_id": cornfield_id,
-        "disease_class": disease_class,
+        "disease_class": final_disease_class,
         "confidence": confidence,
         "ms": ms,
         "image_url": s3_image_url,
         "created_at_vn": timezone.localtime(info.created_at, VN_TZ).isoformat(),
         "updated_at_vn": timezone.localtime(info.updated_at, VN_TZ).isoformat(),
-    })
+    }
+
+    for q in client_queues:
+        q.put(payload)
+
+    return JsonResponse(
+        {
+            "success": True,
+            "message": "CornfieldInfo created successfully",
+            "id": info.id,
+            "farmer_id": farmer_id,
+            "cornfield_id": cornfield_id,
+            "disease_class": final_disease_class,
+            "original_ai_class": disease_class,
+            "confidence": confidence,
+            "ms": ms,
+            "image_url": s3_image_url,
+            "created_at_vn": timezone.localtime(info.created_at, VN_TZ).isoformat(),
+            "updated_at_vn": timezone.localtime(info.updated_at, VN_TZ).isoformat(),
+        }
+    )
