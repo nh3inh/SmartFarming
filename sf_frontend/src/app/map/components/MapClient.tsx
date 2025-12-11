@@ -5,6 +5,7 @@ import { renderToString } from 'react-dom/server';
 import { Bold, MapPin } from 'lucide-react';
 import { getUserProfile } from '@/services/userService';
 import L from 'leaflet';
+import * as turf from '@turf/turf';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
@@ -564,31 +565,50 @@ export default function MapClient() {
                 });
 
                 if (info && typeof info.gps_lat === 'number' && typeof info.gps_lon === 'number') {
-                    if (info.gps_lat !== 0 || info.gps_lon !== 0) {
-                        const center: L.LatLngExpression = [info.gps_lat, info.gps_lon];
-                        const bufferRadius = 20;
+                    if (info && typeof info.gps_lat === 'number' && typeof info.gps_lon === 'number') {
+                        if (info.gps_lat !== 0 || info.gps_lon !== 0) {
+                            const centerLat = info.gps_lat;
+                            const centerLon = info.gps_lon;
+                            const bufferRadiusMeters = 20;
 
-                        const bufferCircle = L.circle(center, {
-                            color: '#fff',
-                            weight: 1,
-                            fill: false,
-                            radius: bufferRadius,
-                            dashArray: '5, 5',
-                            interactive: false
-                        });
+                            const centerPoint = turf.point([centerLon, centerLat]);
+                            const circlePoly = turf.circle(centerPoint, bufferRadiusMeters, {
+                                steps: 64,
+                                units: 'meters'
+                            });
 
-                        const centerPoint = L.circleMarker(center, {
-                            radius: 3,
-                            color: '#fff',
-                            weight: 1,
-                            fillColor: color,
-                            fillOpacity: 1,
-                            interactive: false
-                        });
+                            const fieldPoly = feature;
 
-                        if (allBuffersLayerRef.current) {
-                            allBuffersLayerRef.current.addLayer(bufferCircle);
-                            allBuffersLayerRef.current.addLayer(centerPoint);
+                            const clippedBuffer = turf.intersect(turf.featureCollection([fieldPoly, circlePoly]));
+
+                            if (clippedBuffer) {
+                                const bufferLayer = L.geoJSON(clippedBuffer, {
+                                    style: {
+                                        color: '#fff',
+                                        weight: 1,
+                                        fill: false,
+                                        dashArray: '5, 5',
+                                        interactive: false
+                                    }
+                                });
+
+                                if (allBuffersLayerRef.current) {
+                                    allBuffersLayerRef.current.addLayer(bufferLayer);
+                                }
+                            }
+
+                            const centerPointMarker = L.circleMarker([centerLat, centerLon], {
+                                radius: 3,
+                                color: '#fff',
+                                weight: 1,
+                                fillColor: color,
+                                fillOpacity: 1,
+                                interactive: false
+                            });
+
+                            if (allBuffersLayerRef.current) {
+                                allBuffersLayerRef.current.addLayer(centerPointMarker);
+                            }
                         }
                     }
                 }
