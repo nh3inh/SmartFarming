@@ -1,21 +1,35 @@
 # SmartFarming - TL Rice
+Smart Farming is a web-based platform that leverages cloud computing, GIS, IoT, and AI technologies to monitor, manage, and optimize agricultural activities, helping farmers make data-driven decisions and improve crop productivity.
+## Features
 
-# Tổng quan kiến trúc
+- **Smart Farming Monitoring**
+  - Collect and monitor farming data from IoT devices (environment, crops, sensors)
+  - Store images captured from field devices (rice leaf images)
 
-Frontend: Next.js + React + Leaflet + Leaflet.draw
+- **AI-based Rice Disease Analysis**
+  - Analyze rice leaf images using AI models
+  - Integrate OpenAI for data analysis and decision support
 
-Hiển thị các ruộng dưới dạng GeoJSON từ API
+- **GIS & WebGIS**
+  - Visualize farming areas and sensor data on interactive maps
+  - WebGIS implementation using Leaflet for geospatial monitoring
 
-Cho phép vẽ polygon mới, gửi GeoJSON về API để lưu
+- **Backend & API**
+  - RESTful API built with Django
+  - User authentication and role-based access control
+  - Scalable backend architecture for future expansion
 
-Backend: Django + GeoDjango + Django REST Framework (+ rest_framework_gis)
+- **Frontend**
+  - Modern web interface built with Next.js (React)
+  - Responsive UI for desktop and mobile devices
 
-Lưu ruộng với PolygonField vào PostgreSQL(PostGIS)
+- **Cloud Infrastructure (AWS)**
+  - **EC2** for backend and frontend deployment
+  - **Application Load Balancer** for traffic distribution
+  - **Route 53** for domain and DNS management
+  - **RDS (PostgreSQL)** for structured data storage
+  - **S3** for storing rice leaf images and media files
 
-Trả GeoJSON cho frontend
-
-Database: PostgreSQL trên AWS (RDS) hoặc EC2 với PostGIS extension
-
-Deployment: AWS (RDS cho PostGIS, EC2/ECS/Elastic Beanstalk cho Django, Vercel cho Next.js)
-
-# Chuẩn bị kiến trúc
+- **Realtime & Data Storage**
+  - Firebase for receiving and storing real-time data from IoT devices
+  - Image data pipeline for AI-based disease detection
